@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { scanProject } from "../src/scan.ts";
@@ -30,4 +33,15 @@ test("unsupported ecosystems are reported", async () => {
 test("ecosystem filter", async () => {
   const s = await scanProject(dir("mono"), "npm");
   assert.deepEqual(s.unchecked, []);
+});
+
+test("a crafted package name never reaches a report", async () => {
+  const root = mkdtempSync(join(tmpdir(), "kms-"));
+  writeFileSync(
+    join(root, "package-lock.json"),
+    JSON.stringify({ lockfileVersion: 3, packages: { "": {}, "node_modules/x;rm -rf ~": { version: "1.0.0" } } }),
+  );
+  const s = await scanProject(root);
+  assert.deepEqual(s.deps, []);
+  assert.match(s.unchecked[0]!.reason, /invalid/);
 });

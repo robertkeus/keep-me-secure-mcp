@@ -31,6 +31,9 @@ const MANIFESTS: Record<string, Ecosystem> = {
 
 const UNSUPPORTED = new Set(["go.mod", "Cargo.lock", "Gemfile.lock", "pom.xml", "packages.lock.json"]);
 
+/** Names end up in shell commands the agent may run, so a crafted lockfile must not get through. */
+export const isSafe = (s: string) => /^[@a-zA-Z0-9][a-zA-Z0-9@._/+-]*$/.test(s);
+
 const isRequirements = (file: string) => /^requirements.*\.txt$/.test(file);
 
 async function walk(root: string, depth = 0): Promise<string[]> {
@@ -64,7 +67,10 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
       const manifestPath = spec.manifest && join(dirname(file), spec.manifest);
       const manifest = manifestPath && names.has(manifestPath) ? await readFile(manifestPath, "utf8") : undefined;
       const parsed = spec.parse(await readFile(file, "utf8"), manifest);
-      scan.deps.push(...parsed.deps.map((d) => ({ ...d, ecosystem: spec.ecosystem, lockfile: rel })));
+      for (const d of parsed.deps) {
+        if (isSafe(d.name) && isSafe(d.version)) scan.deps.push({ ...d, ecosystem: spec.ecosystem, lockfile: rel });
+        else scan.unchecked.push({ item: rel, reason: "entry with invalid package name or version" });
+      }
       scan.private.push(...parsed.private);
       scan.unchecked.push(...parsed.unchecked);
     } catch (e) {

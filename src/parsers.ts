@@ -102,7 +102,7 @@ export function parseYarnLock(lock: string, manifest?: string): Parsed {
   return out;
 }
 
-const normalizePy = (name: string) => name.toLowerCase().replace(/[-_.]+/g, "-");
+export const normalizePy = (name: string) => name.toLowerCase().replace(/[-_.]+/g, "-");
 
 export function parseRequirements(text: string): Parsed {
   const out = empty();
