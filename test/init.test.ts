@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, beforeEach, test } from "node:test";
 import { init } from "../src/init.ts";
+import { VERSION } from "../src/version.ts";
 
 const start = process.cwd();
 const read = (f: string) => readFileSync(f, "utf8");
@@ -18,6 +19,17 @@ test("writes config and is idempotent", async () => {
   assert.equal(settings.hooks.SessionStart.length, 1);
   assert.equal(read("AGENTS.md").match(/keep-me-secure/g)?.length, 1);
   assert.equal(JSON.parse(read(".mcp.json")).mcpServers["keep-me-secure"].command, "sh");
+});
+
+test("re-running moves the hook to the current version and keeps other hooks", async () => {
+  mkdirSync(".claude");
+  const old = { type: "command", command: "docker run ghcr.io/robertkeus/keep-me-secure-mcp:v0.1.0 check" };
+  const other = { type: "command", command: "echo hi" };
+  writeFileSync(".claude/settings.json", JSON.stringify({ hooks: { SessionStart: [{ hooks: [other, old] }] } }));
+  await init();
+  const groups = JSON.parse(read(".claude/settings.json")).hooks.SessionStart;
+  assert.deepEqual(groups[0].hooks, [other]);
+  assert.match(groups[1].hooks[0].command, new RegExp(`:v${VERSION} check`));
 });
 
 test("keeps existing config", async () => {

@@ -95,7 +95,9 @@ test("OSV failure gives unknown, not no", async () => {
 
 test("nothing scanned gives unknown", async () => {
   serve([]);
-  assert.equal((await buildReport(scan({ deps: [] }))).verdict, "unknown");
+  const r = await buildReport(scan({ deps: [] }));
+  assert.equal(r.verdict, "unknown");
+  assert.match(r.coverage.unchecked[0]!.reason, /no supported lockfile/);
 });
 
 test("unchecked items turn no into unknown, but findings still say yes", async () => {

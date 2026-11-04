@@ -72,6 +72,21 @@ test("throws when OSV fails", async () => {
   await assert.rejects(queryAdvisories([pkg]));
 });
 
+test("retries a transient failure", async () => {
+  let calls = 0;
+  mock.method(globalThis, "fetch", async (url: string) => {
+    if (!url.endsWith("/querybatch")) return json(recorded);
+    return ++calls === 1 ? json({}, 503) : json({ results: [{ vulns: [stub(recorded)] }] });
+  });
+  assert.equal((await queryAdvisories([pkg])).size, 1);
+});
+
+test("does not retry a client error", async () => {
+  const f = mock.method(globalThis, "fetch", async () => json({}, 400));
+  await assert.rejects(queryAdvisories([pkg]));
+  assert.equal(f.mock.callCount(), 1);
+});
+
 test("compares versions numerically", () => {
   assert.ok(compareVersions("1.10.0", "1.9.9") > 0);
   assert.equal(compareVersions("1.0", "1.0.0"), 0);

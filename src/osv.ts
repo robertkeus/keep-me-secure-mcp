@@ -1,9 +1,14 @@
+import { setTimeout } from "node:timers/promises";
 import { readCache, writeCache } from "./cache.ts";
 import type { Advisory, Dep, Severity } from "./types.ts";
 
 const API = "https://api.osv.dev/v1";
 const BATCH = 1000;
 const CONCURRENCY = 10;
+const ATTEMPTS = 3;
+const RETRY_DELAY_MS = 200;
+
+class PermanentError extends Error {}
 
 type Pkg = Pick<Dep, "ecosystem" | "name" | "version">;
 type Stub = { id: string; modified: string };
@@ -12,14 +17,22 @@ type Vuln = Record<string, any>;
 export const pkgKey = (p: Pkg) => `${p.ecosystem}:${p.name}@${p.version}`;
 
 async function getJson(url: string, body?: unknown): Promise<any> {
-  const res = await fetch(url, {
-    method: body ? "POST" : "GET",
-    headers: body ? { "content-type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!res.ok) throw new Error(`${url} returned ${res.status}`);
-  return res.json();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: body ? "POST" : "GET",
+        headers: body ? { "content-type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (res.ok) return await res.json();
+      if (res.status !== 429 && res.status < 500) throw new PermanentError(`${url} returned ${res.status}`);
+      throw new Error(`${url} returned ${res.status}`);
+    } catch (e) {
+      if (e instanceof PermanentError || attempt === ATTEMPTS) throw e;
+      await setTimeout(RETRY_DELAY_MS * attempt);
+    }
+  }
 }
 
 const toQuery = (p: Pkg, page_token?: string) => ({
