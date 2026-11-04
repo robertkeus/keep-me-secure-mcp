@@ -112,6 +112,8 @@ export async function buildReport(scan: Scan): Promise<Report> {
     private: scan.private.map((p) => clean(p, 100)),
     unchecked: scan.unchecked.map((u) => ({ item: clean(u.item, 100), reason: clean(u.reason) })),
   };
+  if (!deps.length && !coverage.unchecked.length)
+    coverage.unchecked.push({ item: "project", reason: "no supported lockfile found" });
   const base = { checked_at: new Date().toISOString(), coverage, note: NOTE };
 
   let advisories: Awaited<ReturnType<typeof queryAdvisories>>;

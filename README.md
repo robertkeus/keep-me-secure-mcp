@@ -22,6 +22,8 @@ This adds or updates three files:
 | `.claude/settings.json` | Claude Code hook that runs the check when a session starts |
 | `AGENTS.md` | Tells other agents to run the check at the start of a session |
 
+The config pins the image version, so a new release never reaches your project unannounced. Run the command again to upgrade.
+
 An MCP server can't start itself, so the hook and the `AGENTS.md` rule are what make the check happen each day. Agents that use their own config file need the `.mcp.json` entry copied there.
 
 ## Tools
@@ -75,7 +77,10 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 
 - The container gets your project read-only, runs as a non-root user with a read-only filesystem and no capabilities.
 - It never installs or upgrades anything. The agent proposes a command and you approve it.
+- Images are published with provenance and an SBOM.
 - Advisory text is shortened, flattened and labelled `summary_untrusted`, because it's third-party text that reaches your agent. Advice and commands are built only from validated package names and versions.
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Limits
 

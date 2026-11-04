@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { VERSION } from "./version.ts";
 
-const IMAGE = "ghcr.io/robertkeus/keep-me-secure-mcp:latest";
+const IMAGE = `ghcr.io/robertkeus/keep-me-secure-mcp:v${VERSION}`;
 const RUN =
   'docker run -i --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges ' +
   '-v "${CLAUDE_PROJECT_DIR:-$PWD}:/workspace:ro" -v kms-cache:/cache ' +
@@ -31,9 +32,11 @@ export async function init(): Promise<string[]> {
   mcp.mcpServers = { ...mcp.mcpServers, "keep-me-secure": { command: "sh", args: ["-c", `exec ${RUN}`] } };
 
   const settings = await readJson(".claude/settings.json");
-  const sessionStart: any[] = settings.hooks?.SessionStart ?? [];
-  const installed = sessionStart.some((g) => g.hooks?.some((h: any) => h.command?.includes("keep-me-secure")));
-  if (!installed) sessionStart.push({ hooks: [{ type: "command", command: HOOK, timeout: 120 }] });
+  const ours = (h: any) => h.command?.includes("keep-me-secure");
+  const sessionStart: any[] = (settings.hooks?.SessionStart ?? [])
+    .map((g: any) => ({ ...g, hooks: g.hooks?.filter((h: any) => !ours(h)) }))
+    .filter((g: any) => g.hooks?.length);
+  sessionStart.push({ hooks: [{ type: "command", command: HOOK, timeout: 120 }] });
   settings.hooks = { ...settings.hooks, SessionStart: sessionStart };
 
   const agents = await readFile("AGENTS.md", "utf8").catch(() => "");

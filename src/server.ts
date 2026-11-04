@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { checkPackage, checkProject } from "./check.ts";
 import type { Report } from "./report.ts";
+import { VERSION } from "./version.ts";
 
 const INSTRUCTIONS =
   "Call check_project once at the start of each coding session and tell the user the result. " +
@@ -16,7 +17,7 @@ const tool = (run: () => Promise<Report>) =>
   );
 
 export function createServer(): McpServer {
-  const server = new McpServer({ name: "keep-me-secure", version: "0.1.0" }, { instructions: INSTRUCTIONS });
+  const server = new McpServer({ name: "keep-me-secure", version: VERSION }, { instructions: INSTRUCTIONS });
   const annotations = { readOnlyHint: true, openWorldHint: true };
 
   server.registerTool(
