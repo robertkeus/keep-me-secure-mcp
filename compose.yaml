@@ -1,0 +1,14 @@
+services:
+  test:
+    build: { context: ., target: test }
+  mcp:
+    build: .
+    stdin_open: true
+    read_only: true
+    cap_drop: [ALL]
+    volumes:
+      - ${PROJECT_DIR:-.}:/workspace:ro
+      - kms-cache:/cache
+
+volumes:
+  kms-cache:
