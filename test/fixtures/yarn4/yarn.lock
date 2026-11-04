@@ -1,0 +1,20 @@
+__metadata:
+  version: 8
+  cacheKey: 10c0
+
+"app@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "app@workspace:."
+
+"lodash@npm:^4.17.15":
+  version: 4.17.15
+  resolution: "lodash@npm:4.17.15"
+  checksum: 10c0/abc
+
+"@babel/core@npm:^7.0.0, @babel/core@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@babel/core@npm:7.1.0"
+
+"gitdep@https://github.com/acme/gitdep.git":
+  version: 1.0.0
+  resolution: "gitdep@https://github.com/acme/gitdep.git#commit=abc"
