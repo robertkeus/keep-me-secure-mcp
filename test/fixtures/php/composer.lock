@@ -1,0 +1,10 @@
+{
+  "packages": [
+    { "name": "guzzlehttp/guzzle", "version": "7.4.0", "notification-url": "https://packagist.org/downloads/" },
+    { "name": "psr/log", "version": "v1.1.4", "notification-url": "https://packagist.org/downloads/" },
+    { "name": "acme/internal", "version": "1.0.0", "dist": { "url": "https://repo.acme.test/a.zip" } }
+  ],
+  "packages-dev": [
+    { "name": "acme/tool", "version": "dev-main", "notification-url": "https://packagist.org/downloads/" }
+  ]
+}

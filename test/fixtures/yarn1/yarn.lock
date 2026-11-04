@@ -1,0 +1,16 @@
+# yarn lockfile v1
+
+
+"@babel/core@^7.0.0", "@babel/core@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.1.0.tgz#abc"
+
+lodash@^4.17.15:
+  version "4.17.15"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#abc"
+  dependencies:
+    a "^1.0.0"
+
+internal@^1.0.0:
+  version "1.0.0"
+  resolved "https://npm.acme.test/internal.tgz#abc"

@@ -1,0 +1,7 @@
+# pinned
+Django==3.2.0 ; python_version > "3.8"
+requests[socks]==2.25.0 \
+    --hash=sha256:abc
+flask>=2.0
+--index-url https://pypi.org/simple
+-r other.txt
