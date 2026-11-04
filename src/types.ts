@@ -25,3 +25,15 @@ export interface Scan {
   private: string[];
   unchecked: Unchecked[];
 }
+
+export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";
+
+export interface Advisory {
+  id: string;
+  aliases: string[];
+  summary: string;
+  severity: Severity;
+  malicious: boolean;
+  /** Lowest fixed release above the installed version, if any. */
+  fixedIn: string | null;
+}
