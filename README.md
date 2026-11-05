@@ -117,6 +117,17 @@ Lockfiles in test and example folders (such as `test`, `spec`, `fixtures` and `e
 
 Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
+## Platform breaches
+
+Packages aren't the only risk. In October 2026 alone, several developer and AI platforms disclosed incidents where customer secrets may have been exposed. If your project uses one, Keep Me Secure tells you what happened and what to do, with a link to the source.
+
+- **Detection:** it looks for files such as `railway.toml`, `vercel.json`, `zbpack.json` and `trigger.config.ts`, and for packages such as `@trigger.dev/sdk`. Platforms that leave no trace in a repo aren't detected, so ask your agent, for example "Was Northflank breached?".
+- **The list:** no public database of platform incidents exists, so we keep [a curated list](https://keepmesecure.dev/incidents), taken from what each company has said. It isn't complete, so an empty result doesn't mean a platform is safe.
+- **Updates:** the plugin and Docker versions fetch [the list](https://keepmesecure.dev/incidents.json) once a day, which sends nothing about your project. The feed can only add incidents: the ones shipped with each release always stay, and every entry is validated. It isn't signed yet.
+- **Reporting:** the session-start message mentions incidents from the last 90 days. `check_platform` always shows all of them. Platform incidents are reported separately and don't change the package verdict.
+
+To add an incident, open a pull request that edits `src/platforms.ts` and links the company's own statement.
+
 ## Tools
 
 | Tool | Question it answers | Input |
@@ -124,6 +135,7 @@ Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and 
 | `check_project` (local) | Is my stack secure? Do I need to patch anything? | `ecosystem`, `path` and `refresh`, all optional |
 | `check_packages` (hosted) | Is my stack secure? | `packages`, a list of up to 500 |
 | `check_package` | Is this exact version safe? | `ecosystem`, `name`, `version` |
+| `check_platform` | Was this platform breached? | `name`, optional. Omit it to list all |
 
 Example result, shortened:
 
@@ -177,7 +189,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Limits
 
-- It covers third-party packages only, not language runtimes, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
+- It covers third-party packages and a curated list of platform incidents, not language runtimes, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
 - A `no` means no known issue at `checked_at`. OSV can lag behind an incident by a few hours.
 - It doesn't check whether your code actually reaches the vulnerable function.
 - For a transitive dependency, the fix may have to come from upgrading its parent package.

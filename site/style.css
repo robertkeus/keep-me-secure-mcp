@@ -43,7 +43,8 @@ p { margin: 0; }
   gap: 56px;
 }
 main { display: flex; flex-direction: column; gap: 56px; }
-section { display: flex; flex-direction: column; gap: 14px; }
+section, article { display: flex; flex-direction: column; gap: 14px; min-width: 0; overflow-wrap: anywhere; }
+article { gap: 6px; }
 
 .top, .top nav { display: flex; align-items: center; gap: 8px; }
 .top { flex-wrap: wrap; justify-content: space-between; column-gap: 16px; }

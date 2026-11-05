@@ -18,7 +18,7 @@ function lock(version: string) {
 
 const countOsv = () => {
   const f = mock.method(globalThis, "fetch", async () => json({ results: [{}] }));
-  return () => f.mock.callCount();
+  return () => f.mock.calls.filter((c) => String(c.arguments[0]).includes("osv.dev")).length;
 };
 
 before(() => {

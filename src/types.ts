@@ -26,6 +26,8 @@ export interface Scan {
   unchecked: Unchecked[];
   /** Lockfiles left out because they sit in test or example folders. */
   ignored?: string[];
+  /** Lower-case names of platforms this project appears to use. */
+  platforms?: string[];
 }
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";

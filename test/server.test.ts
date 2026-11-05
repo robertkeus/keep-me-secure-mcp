@@ -9,7 +9,7 @@ test("lists both tools and reports bad input as a tool error", async () => {
   const client = new Client({ name: "test", version: "1" });
   await Promise.all([createServer().connect(a), client.connect(b)]);
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map((t) => t.name), ["check_project", "check_package"]);
+  assert.deepEqual(tools.map((t) => t.name), ["check_project", "check_platform", "check_package"]);
   const r = await client.callTool({ name: "check_project", arguments: { path: "/etc" } });
   assert.equal(r.isError, true);
   await client.close();

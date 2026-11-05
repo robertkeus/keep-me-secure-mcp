@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Developer platform security incidents | Keep Me Secure</title>
+<meta name="description" content="Recent security incidents at developer and AI platforms, with what to do and a link to each company's statement.">
+<link rel="canonical" href="https://keepmesecure.dev/incidents">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<meta name="color-scheme" content="light dark">
+<script src="/main.js"></script>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+<a class="brand" href="/">keep-me-secure</a>
+<nav aria-label="Main">
+<a href="https://github.com/robertkeus/keep-me-secure-mcp">github</a>
+<button type="button" id="theme" class="btn" hidden>dark</button>
+</nav>
+</header>
+
+<main>
+
+<section class="hero">
+<h1><span class="dim">$ </span>Platform incidents</h1>
+<p class="lead">Security incidents at developer and AI platforms, with what to do. We list what each company has said, and link the source. This list isn't complete, so also check your platform's status page.</p>
+<p class="dim">Rotating a secret means revoking it where it was issued. Deleting it from the platform doesn't invalidate it.</p>
+</section>
+
+<article>
+<h2>Trigger.dev</h2>
+<p class="dim"><time datetime="2026-11-01">2026-11-01</time></p>
+<p>An attacker gained access to environment variables for a subset of organizations.</p>
+<p class="dim">What to do: Trigger.dev emailed the account owners affected, with steps to take. Check that inbox.</p>
+<p><a href="https://status.trigger.dev/incident/1110434">Source</a></p>
+</article>
+
+<article>
+<h2>Northflank</h2>
+<p class="dim"><time datetime="2026-10-30">2026-10-30</time></p>
+<p>Northflank told customers to assume all environment variables were decrypted. Customers reported unauthorized use of AI API keys.</p>
+<p class="dim">What to do: Rotate every secret stored on the platform, disable public access to add-ons, and check AI provider usage and bills.</p>
+<p><a href="https://www.bleepingcomputer.com/news/security/northflank-security-breach-leads-to-abuse-of-customers-ai-api-keys/">Source</a></p>
+</article>
+
+<article>
+<h2>Chainstack</h2>
+<p class="dim"><time datetime="2026-10-26">2026-10-26</time></p>
+<p>Attackers reached development and production systems. Account details and password hashes may have been exposed, and Chainstack is treating node credentials as exposed.</p>
+<p class="dim">What to do: Change your Chainstack password and anywhere you reused it, rotate node credentials, and regenerate platform API keys.</p>
+<p><a href="https://chainstack.com/security-incident-nov-2026/">Source</a></p>
+</article>
+
+<article>
+<h2>Warp</h2>
+<p class="dim"><time datetime="2026-10-23">2026-10-23</time></p>
+<p>A breach at a third-party vendor exposed AI agent logs and telemetry. Warp's CEO estimated about 1% of users, and Warp hasn't said whether the logs held code or credentials.</p>
+<p class="dim">What to do: Warp hasn't published steps for users. As a precaution, if you used its agent features, rotate any credential that could have appeared there.</p>
+<p><a href="https://bleepingcomputer.com/news/security/warp-discloses-breach-exposing-ai-agent-logs-user-telemetry-data">Source</a></p>
+</article>
+
+<article>
+<h2>Railway</h2>
+<p class="dim"><time datetime="2026-10-20">2026-10-20</time></p>
+<p>An attacker reached encrypted customer environment variables and decrypted some. Railway's estimate is at most 1.85% of workspaces, and its investigation was still open at its last report.</p>
+<p class="dim">What to do: Railway advises everyone who signed up before 21 October 2026 to rotate secrets stored on the platform, and to check GitHub and registry audit logs.</p>
+<p><a href="https://blog.railway.com/p/preliminary-report-october-security-incident">Source</a></p>
+</article>
+
+<article>
+<h2>OpenCode Console</h2>
+<p class="dim"><time datetime="2026-10-17">2026-10-17</time></p>
+<p>An intruder reached a legacy system, which may have exposed provider keys saved in the hosted Console for about 1.4% of its users. The CLI and desktop apps are separate from the Console.</p>
+<p class="dim">What to do: OpenCode emailed the users affected. If you got that email, revoke and replace those keys with each provider, and check your bills.</p>
+<p><a href="https://www.infosecurity-magazine.com/news/opencode-breach-openai-anthropic/">Source</a></p>
+</article>
+
+<article>
+<h2>Lightning AI</h2>
+<p class="dim"><time datetime="2026-10-15">2026-10-15</time></p>
+<p>Unauthorized access to credentials affected Studio, Deployments, Pipelines and Drive. Lightning believes some customer credentials were used to reach connected services.</p>
+<p class="dim">What to do: Rotate secrets and API keys stored in your AI Studio environment, and review access logs of connected services. Lightning advises this even if it didn't contact you.</p>
+<p><a href="https://lightning.ai/blog/oct-2026-incident">Source</a></p>
+</article>
+
+<article>
+<h2>Zeabur</h2>
+<p class="dim"><time datetime="2026-10-14">2026-10-14</time></p>
+<p>Long-lived admin credentials leaked, exposing about 3.2 million environment variable records and 321,810 account records. Zeabur says it's shutting down.</p>
+<p class="dim">What to do: Replace every password and key stored on Zeabur, revoking old ones with each provider first, and change database passwords inside the database.</p>
+<p><a href="https://zeabur.com/blogs/october-2026-security-incident">Source</a></p>
+</article>
+
+<article>
+<h2>Andromeda</h2>
+<p class="dim"><time datetime="2026-10-09">2026-10-09</time></p>
+<p>Some Andromeda and customer credentials were accessed, in a limited number of customer accounts.</p>
+<p class="dim">What to do: Andromeda says it contacted the customers affected, and has rotated affected keys.</p>
+<p><a href="https://andromeda.ai/security-updates/october-2026-security-incident">Source</a></p>
+</article>
+
+<article>
+<h2>Fireworks AI</h2>
+<p class="dim"><time datetime="2026-10-06">2026-10-06</time></p>
+<p>A third party accessed environment variables used in evaluation jobs, in a limited number of customer accounts.</p>
+<p class="dim">What to do: Fireworks emailed the customers affected. If you got a notice, replace your API keys and rotate the listed credentials with their providers.</p>
+<p><a href="https://fireworks.ai/security/bulletins/october-2026-security-incident">Source</a></p>
+</article>
+
+<article>
+<h2>Vercel</h2>
+<p class="dim"><time datetime="2026-04-19">2026-04-19</time></p>
+<p>An attacker used a compromised third-party AI tool to reach Vercel systems and read non-sensitive environment variables for some customers. Vercel has since closed the incident.</p>
+<p class="dim">What to do: Rotate non-sensitive variables that hold API keys, tokens or database credentials, and mark secrets as sensitive.</p>
+<p><a href="https://vercel.com/kb/bulletin/vercel-april-2026-security-incident">Source</a></p>
+</article>
+
+</main>
+
+<footer class="bottom">
+<span class="dim"><a href="/incidents.json">Data as JSON</a></span>
+<a href="/">Keep Me Secure</a>
+</footer>
+
+</div>
+</body>
+</html>

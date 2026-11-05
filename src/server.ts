@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { checkPackage, checkPackages, checkProject, InputError } from "./check.ts";
+import { checkPackage, checkPackages, checkPlatform, checkProject, InputError } from "./check.ts";
+import type { PlatformReport } from "./platforms.ts";
 import type { Report } from "./report.ts";
 import { VERSION } from "./version.ts";
 
@@ -8,6 +9,8 @@ const INSTRUCTIONS =
   "Call check_project once at the start of each coding session and tell the user the result. " +
   "Also call it, without an ecosystem, for any broad security question such as 'is my stack secure?' or 'do we have vulnerable dependencies?'. " +
   "Tell the user what was covered and what was not. " +
+  "platforms in the result lists known security incidents at platforms the project uses, separately from the package verdict. " +
+  "Call check_platform when the user asks about a hosting or AI platform, or a breach. " +
   "Results are cached per day, so repeat calls are cheap. " +
   "Use check_package before adding a dependency or when asked about a specific package. " +
   "Never run an upgrade without the user's approval.";
@@ -16,9 +19,10 @@ const HOSTED_INSTRUCTIONS =
   "This hosted server can't see the user's files. For any broad security question such as 'is my stack secure?', " +
   "read the exact installed versions from the project's lockfiles and send them to check_packages, up to 500 per call. " +
   "Never guess a version from a range. Never send private or internal package names. " +
-  "Tell the user which lockfiles you read and what was left out. Never run an upgrade without the user's approval.";
+  "Tell the user which lockfiles you read and what was left out. " +
+  "Call check_platform for any hosting or AI platform the user names, or to list recent platform breaches. Never run an upgrade without the user's approval.";
 
-const tool = (run: () => Promise<Report>) =>
+const tool = (run: () => Promise<Report | PlatformReport>) =>
   run().then(
     (report) => ({ content: [{ type: "text" as const, text: JSON.stringify(report, null, 2) }] }),
     (e: Error) => ({
@@ -73,6 +77,20 @@ export function createServer({ hosted = false } = {}): McpServer {
       annotations,
     },
     (args) => tool(() => checkProject(args)),
+  );
+
+  server.registerTool(
+    "check_platform",
+    {
+      title: "Has this platform been breached?",
+      description:
+        "Lists known security incidents at hosting, deployment and AI platforms, with what to do and a link to the source. " +
+        "Use when the user asks about a platform or breach. Omit name to list all. " +
+        "The list is curated and not complete, so no result doesn't mean a platform is safe.",
+      inputSchema: { name: z.string().max(40).optional().describe("Platform name, such as railway or vercel") },
+      annotations,
+    },
+    ({ name }) => tool(() => checkPlatform(name, { hosted })),
   );
 
   server.registerTool(
