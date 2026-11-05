@@ -4,7 +4,7 @@ import { readCache, today, writeCache } from "./cache.ts";
 import { normalizePy } from "./parsers.ts";
 import { buildReport, type Report } from "./report.ts";
 import { isSafe, scanProject } from "./scan.ts";
-import type { Ecosystem } from "./types.ts";
+import type { Dep, Ecosystem, Scan } from "./types.ts";
 
 const ECOSYSTEMS: Record<string, Ecosystem> = {
   php: "Packagist",
@@ -61,13 +61,33 @@ export async function checkProject(opts: { path?: string; ecosystem?: string; re
   return report;
 }
 
-export async function checkPackage(opts: { ecosystem: string; name: string; version: string }): Promise<Report> {
+type PackageInput = { ecosystem: string; name: string; version: string };
+
+function toDep(opts: PackageInput): Dep {
   const ecosystem = toEcosystem(opts.ecosystem);
   const version = opts.version.replace(/^v/, "");
   const name = ecosystem === "PyPI" ? normalizePy(opts.name) : opts.name;
   if (!isSafe(name) || !isSafe(version) || !/^\d/.test(version))
     throw new Error("name must be a package name and version an exact version such as 1.2.3, not a range.");
-  return buildReport({ deps: [{ ecosystem, name, version, direct: true, lockfile: "" }], private: [], unchecked: [] });
+  return { ecosystem, name, version, direct: true, lockfile: "" };
+}
+
+export async function checkPackage(opts: PackageInput): Promise<Report> {
+  return buildReport({ deps: [toDep(opts)], private: [], unchecked: [] });
+}
+
+/** For the hosted server, which can't read lockfiles: it only knows what the agent sends. */
+export async function checkPackages(packages: PackageInput[]): Promise<Report> {
+  const scan: Scan = { deps: [], private: [], unchecked: [] };
+  for (const p of packages) {
+    try {
+      scan.deps.push(toDep(p));
+    } catch (e) {
+      scan.unchecked.push({ item: `${p.name}@${p.version}`, reason: (e as Error).message });
+    }
+  }
+  const report = await buildReport(scan);
+  return { ...report, note: `Only the ${packages.length} packages sent were checked. ${report.note}` };
 }
 
 export function summarize(r: Report): string {

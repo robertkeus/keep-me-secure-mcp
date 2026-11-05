@@ -1,0 +1,26 @@
+name = "keep-me-secure-mcp"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+routes = [{ pattern = "mcp.keepmesecure.dev", custom_domain = true }]
+
+# Package lists show what a company runs, so nothing is logged.
+[observability]
+enabled = false
+
+[[ratelimits]]
+name = "REQUEST_LIMIT"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60
+
+[[ratelimits]]
+name = "CHECK_LIMIT"
+namespace_id = "1002"
+
+  [ratelimits.simple]
+  limit = 20
+  period = 60
