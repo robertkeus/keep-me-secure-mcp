@@ -1,52 +1,45 @@
 # keep-me-secure-mcp
 
-Website: [keepmesecure.dev](https://keepmesecure.dev)
+**Ask your coding agent "Is my stack secure?" and get a yes or no, with what to do next.**
 
-An MCP server that tells your coding agent whether your installed packages need patching.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+  <img alt="A terminal. Someone asks: Is my stack secure? It scans 111 packages across PHP, npm, Go and Java, then answers no: 18 packages need patching, starting with log4j-core and spring-beans." src="assets/hero-light.svg" width="880">
+</picture>
 
-Every day when you start coding, it checks every package in your lockfiles against public security advisories. You can also ask your agent directly: "Is my stack secure?" or "Do I need to patch any of my PHP packages?" The answer is yes, no or unknown, with advice on what to do.
+[Website](https://keepmesecure.dev) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · MIT license
 
-| Language | Reads |
-|---|---|
-| PHP | `composer.lock` |
-| JavaScript | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` |
-| Python | `requirements*.txt`, `poetry.lock`, `uv.lock` |
-| Go | `go.mod` |
-| Rust | `Cargo.lock` |
-| Ruby | `Gemfile.lock` |
-| Java, Kotlin | `gradle.lockfile` |
-| .NET | `packages.lock.json` |
+It's a free, open source MCP server. It checks every package in your lockfiles against public security advisories, including the ones you didn't install directly.
 
-Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
+## Quick start
 
-## Two ways to use it
-
-| | Hosted | Local |
-|---|---|---|
-| **Setup** | Paste a URL | Docker and one command |
-| **Daily check when you start coding** | No, you ask | Yes |
-| **Who reads your lockfiles** | Your agent, which sends the package list to our server | The container, on your machine |
-| **Coverage** | What the agent sends, up to 500 packages per call | Every package, always |
-| **Best for** | Trying it, small projects | Daily use, large or private projects |
-
-## Hosted
-
-Connect your agent to `https://mcp.keepmesecure.dev/mcp`. For Claude Code:
+Add it to Claude Code. You need Node.js 22 or newer, and no account or Docker.
 
 ```bash
-claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp
+claude plugin install keep-me-secure --marketplace robertkeus/keep-me-secure-mcp
 ```
 
-No account or token is needed. It runs on Cloudflare Workers. Each IP address gets 20 checks per minute.
+Now it checks by itself when you start coding, once a day per project. You can also ask your agent at any time:
 
-- Your agent reads your lockfiles and sends package names and versions. It's told to leave out private packages, but that depends on the agent. If your package names are sensitive, use the local version.
-- The server doesn't log or store package lists, and Worker logging is turned off. Your IP address is used as the rate limit key. Package names and versions are passed to OSV, and Cloudflare may keep its own standard request data.
-- Large projects cost more, because your agent has to send every package itself.
-- Every package is treated as a direct dependency, so check the suggested command for transitive ones.
+```text
+Is my stack secure?
+```
 
-## Local
+It never changes anything without your OK.
 
-You need Docker. Run this in your project:
+## Ways to use it
+
+| | Claude Code plugin | Docker | Hosted URL |
+|---|---|---|---|
+| **Best for** | Daily use in Claude Code | Other agents, isolation | Trying it, small projects |
+| **You need** | Node.js 22 or newer | Docker | Nothing |
+| **Daily check** | Yes | Yes | No, you ask |
+| **Who reads your lockfiles** | The plugin, on your machine | The container, on your machine | Your agent, which sends the list to our server |
+| **Coverage** | Every package | Every package | What your agent sends |
+
+### Docker
+
+Run this in your project:
 
 ```bash
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertkeus/keep-me-secure-mcp:latest init
@@ -62,13 +55,12 @@ This adds or updates three files:
 
 The config pins the image version, so a new release never reaches your project unannounced. Run the command again to upgrade.
 
-An MCP server can't start itself, so the hook and the `AGENTS.md` rule are what make the check happen each day.
+For other agents, keep the `AGENTS.md` rule: in testing, Codex only called the tool when that rule was present.
 
-### Other agents
+<details>
+<summary>Codex</summary>
 
-`init` only configures Claude Code directly, but the `AGENTS.md` rule works for other agents too. Keep it: in testing, Codex only called the tool when that rule was present.
-
-Codex, in `~/.codex/config.toml`:
+In `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.keep-me-secure]
@@ -76,7 +68,12 @@ command = "sh"
 args = ["-c", "exec docker run -i --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges -v \"$PWD:/workspace:ro\" -v kms-cache:/cache ghcr.io/robertkeus/keep-me-secure-mcp:latest"]
 ```
 
-opencode, in `opencode.json`:
+</details>
+
+<details>
+<summary>opencode</summary>
+
+In `opencode.json`:
 
 ```json
 {
@@ -90,7 +87,33 @@ opencode, in `opencode.json`:
 }
 ```
 
+</details>
+
 Tested with Claude Code, Codex and opencode. Cursor and other MCP clients should work with the same command, but haven't been tested. The agent must start in your project folder, because `$PWD` is what gets scanned.
+
+### Hosted URL
+
+Add `https://mcp.keepmesecure.dev/mcp` as a remote MCP server in your agent. No account or token is needed, and each IP address gets 20 checks per minute.
+
+- Your agent reads your lockfiles and sends package names and versions, so coverage depends on your agent. In one test it sent only 19 of 39 packages. Use the plugin or Docker when coverage matters.
+- Your agent is told to leave out private packages, but that isn't enforced. If your package names are sensitive, run it locally.
+- The server doesn't log or store package lists, and Worker logging is turned off. Package names and versions are passed to OSV, and Cloudflare may keep its own standard request data.
+- Every package is treated as a direct dependency, so check the suggested command for transitive ones.
+
+## What it checks
+
+| Language | Reads |
+|---|---|
+| PHP | `composer.lock` |
+| JavaScript | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` |
+| Python | `requirements*.txt`, `poetry.lock`, `uv.lock` |
+| Go | `go.mod` |
+| Rust | `Cargo.lock` |
+| Ruby | `Gemfile.lock` |
+| Java, Kotlin | `gradle.lockfile` |
+| .NET | `packages.lock.json` |
+
+Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
 ## Tools
 
@@ -139,11 +162,11 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 - Names and versions of public packages are sent to [OSV.dev](https://osv.dev). When something is affected, CVE ids go to [FIRST EPSS](https://www.first.org/epss/). The CISA KEV feed is downloaded.
 - Packages from private registries, git or local paths are not sent anywhere. They're listed in `coverage.private` and aren't checked.
 - Go, Java and .NET lockfiles don't show which registry a package came from, so private package names in those ecosystems are sent to OSV. Local `replace` paths in `go.mod` are the exception.
-- Results are cached per day in the `kms-cache` Docker volume. A lockfile change triggers a new check.
+- Results are cached per day, in `~/.cache/keep-me-secure` for the plugin and the `kms-cache` volume for Docker. A lockfile change triggers a new check.
 
 ## Security
 
-- The container gets your project read-only, runs as a non-root user with a read-only filesystem and no capabilities.
+- The Docker container gets your project read-only, runs as a non-root user with a read-only filesystem and no capabilities.
 - It never installs or upgrades anything. The agent proposes a command and you approve it.
 - Images are published with provenance and an SBOM.
 - Advisory text is shortened, flattened and labelled `summary_untrusted`, because it's third-party text that reaches your agent. Advice and commands are built only from validated package names and versions.

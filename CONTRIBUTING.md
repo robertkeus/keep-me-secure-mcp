@@ -29,6 +29,14 @@ Issues and pull requests are welcome. To report a vulnerability, see [SECURITY.m
 
 The site in `site/` is plain HTML, CSS and JavaScript, served by the Worker. Anything that isn't a file there, such as `/mcp`, reaches the Worker. If you change the FAQ, update the JSON-LD in `site/index.html` and `site/llms.txt` to match.
 
+## Plugin
+
+`plugin/server.mjs` is a bundle of `src/`, committed so the plugin installs without a build step. Rebuild it with `npm run build:plugin` whenever `src/` changes, or CI will fail.
+
+## README animation
+
+`assets/hero.py` generates the light and dark SVGs. Edit it and run it, rather than editing the SVGs.
+
 ## Rules that keep the tool trustworthy
 
 - Never return `no` unless everything was checked. An incomplete check is `unknown`.
