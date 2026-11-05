@@ -2,11 +2,29 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
-const dir = () => process.env.KMS_CACHE_DIR ?? join(homedir(), ".cache", "keep-me-secure");
+interface Store {
+  read(key: string): Promise<unknown>;
+  write(key: string, value: unknown): Promise<void>;
+}
+
+const file = (key: string) =>
+  join(process.env.KMS_CACHE_DIR ?? join(homedir(), ".cache", "keep-me-secure"), `${key}.json`);
+
+let store: Store = {
+  read: async (key) => JSON.parse(await readFile(file(key), "utf8")),
+  async write(key, value) {
+    await mkdir(dirname(file(key)), { recursive: true });
+    await writeFile(file(key), JSON.stringify(value));
+  },
+};
+
+export const setCacheStore = (s: Store) => {
+  store = s;
+};
 
 export async function readCache<T>(key: string): Promise<T | undefined> {
   try {
-    return JSON.parse(await readFile(join(dir(), `${key}.json`), "utf8"));
+    return (await store.read(key)) as T | undefined;
   } catch {
     return undefined;
   }
@@ -14,10 +32,8 @@ export async function readCache<T>(key: string): Promise<T | undefined> {
 
 /** Best effort: a read-only filesystem only costs us the speed-up. */
 export async function writeCache(key: string, value: unknown): Promise<void> {
-  const file = join(dir(), `${key}.json`);
   try {
-    await mkdir(dirname(file), { recursive: true });
-    await writeFile(file, JSON.stringify(value));
+    await store.write(key, value);
   } catch {}
 }
 

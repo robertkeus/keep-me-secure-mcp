@@ -1,0 +1,34 @@
+# Keep Me Secure
+
+> Free, open source MCP server. Ask your coding agent "Is my stack secure?" and it checks every package in your project against public security advisories, then answers yes, no or unknown, with what to do next.
+
+Hosted endpoint: https://mcp.keepmesecure.dev/mcp (Streamable HTTP, no account or token)
+
+Install in Claude Code:
+
+```bash
+claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp
+```
+
+Run locally with Docker, in your project:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertkeus/keep-me-secure-mcp:latest init
+```
+
+## Tools
+
+- `check_packages` (hosted): checks a list of up to 500 exact package versions
+- `check_project` (local): checks every package in the project's lockfiles
+- `check_package`: checks one exact package version
+
+## Coverage
+
+- Languages: PHP, JavaScript, Python, Go, Rust, Ruby, Java, Kotlin and .NET
+- Data: OSV.dev, the CISA Known Exploited Vulnerabilities list and FIRST EPSS
+- Not covered: language runtimes, servers, Docker images and your own code
+
+## Links
+
+- [Source code and docs](https://github.com/robertkeus/keep-me-secure-mcp)
+- [MCP Registry name: io.github.robertkeus/keep-me-secure-mcp](https://registry.modelcontextprotocol.io/v0/servers?search=keep-me-secure)

@@ -13,5 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: npm audit --omit=dev --audit-level=high
+      - run: npm ci --ignore-scripts
+      - run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker"
       - run: docker compose build test mcp
       - run: docker compose run --rm test

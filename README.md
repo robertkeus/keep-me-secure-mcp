@@ -1,5 +1,7 @@
 # keep-me-secure-mcp
 
+Website: [keepmesecure.dev](https://keepmesecure.dev)
+
 An MCP server that tells your coding agent whether your installed packages need patching.
 
 Every day when you start coding, it checks every package in your lockfiles against public security advisories. You can also ask your agent directly: "Is my stack secure?" or "Do I need to patch any of my PHP packages?" The answer is yes, no or unknown, with advice on what to do.
@@ -17,7 +19,32 @@ Every day when you start coding, it checks every package in your lockfiles again
 
 Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
-## Setup
+## Two ways to use it
+
+| | Hosted | Local |
+|---|---|---|
+| **Setup** | Paste a URL | Docker and one command |
+| **Daily check when you start coding** | No, you ask | Yes |
+| **Who reads your lockfiles** | Your agent, which sends the package list to our server | The container, on your machine |
+| **Coverage** | What the agent sends, up to 500 packages per call | Every package, always |
+| **Best for** | Trying it, small projects | Daily use, large or private projects |
+
+## Hosted
+
+Connect your agent to `https://mcp.keepmesecure.dev/mcp`. For Claude Code:
+
+```bash
+claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp
+```
+
+No account or token is needed. It runs on Cloudflare Workers. Each IP address gets 20 checks per minute.
+
+- Your agent reads your lockfiles and sends package names and versions. It's told to leave out private packages, but that depends on the agent. If your package names are sensitive, use the local version.
+- The server doesn't log or store package lists, and Worker logging is turned off. Your IP address is used as the rate limit key. Package names and versions are passed to OSV, and Cloudflare may keep its own standard request data.
+- Large projects cost more, because your agent has to send every package itself.
+- Every package is treated as a direct dependency, so check the suggested command for transitive ones.
+
+## Local
 
 You need Docker. Run this in your project:
 
@@ -69,7 +96,8 @@ Tested with Claude Code, Codex and opencode. Cursor and other MCP clients should
 
 | Tool | Question it answers | Input |
 |---|---|---|
-| `check_project` | Is my stack secure? Do I need to patch anything? | `ecosystem`, `path` and `refresh`, all optional |
+| `check_project` (local) | Is my stack secure? Do I need to patch anything? | `ecosystem`, `path` and `refresh`, all optional |
+| `check_packages` (hosted) | Is my stack secure? | `packages`, a list of up to 500 |
 | `check_package` | Is this exact version safe? | `ecosystem`, `name`, `version` |
 
 Example result, shortened:
@@ -129,6 +157,20 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 - It doesn't check whether your code actually reaches the vulnerable function.
 - For a transitive dependency, the fix may have to come from upgrading its parent package.
 
+## Self-hosting
+
+You can run the HTTP server yourself:
+
+```bash
+docker run --rm -p 8080:8080 --read-only --cap-drop=ALL -v kms-cache:/cache ghcr.io/robertkeus/keep-me-secure-mcp:latest serve
+```
+
+The endpoint is `/mcp`, and `/health` is for health checks. Rate limits are kept in memory, per instance. Set `PORT` to change the port. Set `KMS_TRUST_PROXY=1` only behind a proxy that adds `X-Forwarded-For`, so rate limits apply to the real client.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). This project is MIT licensed.
+
 ## Development
 
 ```bash
@@ -147,6 +189,12 @@ To try it on a vulnerable project:
 
 ```bash
 PROJECT_DIR=./test/fixtures/php docker compose run --rm -T mcp check
+```
+
+To run the Cloudflare Worker locally:
+
+```bash
+npx wrangler dev
 ```
 
 Pushing a `v*` tag publishes the image to GHCR.

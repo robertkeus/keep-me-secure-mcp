@@ -1,0 +1,35 @@
+name = "keep-me-secure-mcp"
+main = "src/worker.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+routes = [
+  { pattern = "mcp.keepmesecure.dev", custom_domain = true },
+  { pattern = "keepmesecure.dev/*", zone_name = "keepmesecure.dev" },
+  { pattern = "www.keepmesecure.dev/*", zone_name = "keepmesecure.dev" },
+]
+
+# The website. Anything that isn't a file here, such as /mcp, reaches the Worker.
+[assets]
+directory = "site"
+
+# Package lists show what a company runs, so nothing is logged.
+[observability]
+enabled = false
+
+[[ratelimits]]
+name = "REQUEST_LIMIT"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60
+
+# Exact per-client limit on checks, the requests that cost something.
+[[durable_objects.bindings]]
+name = "CHECKS"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
