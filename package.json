@@ -1,6 +1,6 @@
 {
   "name": "keep-me-secure-mcp",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "MCP server that tells your coding agent whether your installed packages need patching",
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,8 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
-    "build:plugin": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --minify --outfile=plugin/server.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\""
+    "build:plugin": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --minify --outfile=plugin/server.mjs --banner:js=\"import{createRequire as __cr}from'node:module';const require=__cr(import.meta.url);\"",
+    "build:site": "node scripts/build-site.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

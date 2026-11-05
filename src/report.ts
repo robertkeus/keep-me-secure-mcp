@@ -1,5 +1,6 @@
 import { epssScores, knownExploited } from "./enrich.ts";
 import { compareVersions, pkgKey, queryAdvisories } from "./osv.ts";
+import type { PlatformReport } from "./platforms.ts";
 import { isSafeVersion } from "./scan.ts";
 import type { Advisory, Dep, Scan, Severity, Unchecked } from "./types.ts";
 
@@ -28,6 +29,7 @@ export interface Finding {
 }
 
 export interface Report {
+  /** Packages only. Platform incidents are reported separately, in platforms. */
   verdict: Verdict;
   urgency: Urgency | null;
   checked_at: string;
@@ -40,6 +42,7 @@ export interface Report {
     ignored: string[];
   };
   note: string;
+  platforms?: PlatformReport & { detected: string[] };
 }
 
 const SEVERITY_ORDER: Severity[] = ["CRITICAL", "HIGH", "UNKNOWN", "MODERATE", "LOW"];

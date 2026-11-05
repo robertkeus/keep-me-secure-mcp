@@ -33,9 +33,12 @@ addEventListener("DOMContentLoaded", () => {
     for (const t of tabs) t.setAttribute("aria-pressed", String(t.dataset.tab === name));
     for (const p of document.querySelectorAll("[data-panel]")) p.classList.toggle("on", p.dataset.panel === name);
   };
-  document.querySelector(".tabs").hidden = false;
-  for (const t of tabs) t.addEventListener("click", () => show(t.dataset.tab));
-  show("claude");
+  const tabList = document.querySelector(".tabs");
+  if (tabList) {
+    tabList.hidden = false;
+    for (const t of tabs) t.addEventListener("click", () => show(t.dataset.tab));
+    show("claude");
+  }
 
   for (const button of document.querySelectorAll(".copy")) {
     button.hidden = false;

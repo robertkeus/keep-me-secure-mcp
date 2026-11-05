@@ -3,6 +3,7 @@ import { realpathSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { readCache, today, writeCache } from "./cache.ts";
 import { normalizePy } from "./parsers.ts";
+import { allIncidents, forPlatforms, INCIDENTS, isRecent, loadIncidents, type PlatformReport } from "./platforms.ts";
 import { buildReport, NO_LOCKFILE, type Report } from "./report.ts";
 import { isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
 import type { Dep, Ecosystem, Scan } from "./types.ts";
@@ -64,11 +65,16 @@ export async function checkProject(opts: { path?: string; ecosystem?: string; re
   const scan = await scanProject(projectRoot(opts.path), opts.ecosystem ? toEcosystem(opts.ecosystem) : undefined);
   const key = `report-${createHash("sha256").update(JSON.stringify(scan)).digest("hex").slice(0, 32)}`;
   const cached = await readCache<{ date: string; report: Report }>(key);
-  if (!opts.refresh && cached?.date === today()) return cached.report;
+  // Platform incidents are looked up fresh, so they're never served from a saved report.
+  const withPlatforms = async (report: Report): Promise<Report> => ({
+    ...report,
+    platforms: { detected: scan.platforms ?? [], ...forPlatforms(await loadIncidents(), scan.platforms ?? []) },
+  });
+  if (!opts.refresh && cached?.date === today()) return withPlatforms(cached.report);
   const report = await buildReport(scan);
   const lookupFailed = report.coverage.unchecked.some((u) => u.item === "OSV");
   if (!lookupFailed) await writeCache(key, { date: today(), report });
-  return report;
+  return withPlatforms(report);
 }
 
 type PackageInput = { ecosystem: string; name: string; version: string };
@@ -100,7 +106,22 @@ export async function checkPackages(packages: PackageInput[]): Promise<Report> {
   return { ...report, note: `Only the ${packages.length} packages sent were checked. ${report.note}` };
 }
 
+/** The hosted server answers from the list it was deployed with, so it never calls itself. */
+export async function checkPlatform(name: string | undefined, { hosted = false } = {}): Promise<PlatformReport> {
+  const incidents = hosted ? INCIDENTS : await loadIncidents();
+  return name ? forPlatforms(incidents, [name.toLowerCase().trim()]) : allIncidents(incidents);
+}
+
 export function summarize(r: Report): string {
+  const packages = summarizePackages(r);
+  const recent = (r.platforms?.incidents ?? []).filter((i) => isRecent(i));
+  const platforms = recent.map(
+    (i) => `keep-me-secure: ${i.platform} reported a security incident on ${i.date}. Call the check_platform tool for what to do.`,
+  );
+  return [packages, ...platforms].filter(Boolean).join("\n");
+}
+
+function summarizePackages(r: Report): string {
   const noProject = r.verdict === "unknown" && r.coverage.unchecked.length === 1 && r.coverage.unchecked[0]!.reason === NO_LOCKFILE;
   if (noProject) return "";
   const counts = Object.entries(r.coverage.by_ecosystem).map(([e, n]) => `${e} ${n}`).join(", ");

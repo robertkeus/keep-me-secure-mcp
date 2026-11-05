@@ -21,11 +21,13 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertke
 - `check_packages` (hosted): checks a list of up to 500 exact package versions
 - `check_project` (local): checks every package in the project's lockfiles
 - `check_package`: checks one exact package version
+- `check_platform`: lists known security incidents at hosting and AI platforms, with what to do
 
 ## Coverage
 
 - Languages: PHP, JavaScript, Python, Go, Rust, Ruby, Java, Kotlin and .NET
 - Data: OSV.dev, the CISA Known Exploited Vulnerabilities list and FIRST EPSS
+- Platforms: a curated list of known incidents, at https://keepmesecure.dev/incidents and as JSON at https://keepmesecure.dev/incidents.json. It isn't complete
 - Not covered: language runtimes, servers, Docker images and your own code
 - Test and example folders are skipped by default, and listed in the result
 

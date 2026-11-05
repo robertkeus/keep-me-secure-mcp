@@ -55,7 +55,7 @@ const call = JSON.stringify({
 test("hosted server offers no tool that reads the disk", async () => {
   const client = await connect();
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map((t) => t.name).sort(), ["check_package", "check_packages"]);
+  assert.deepEqual(tools.map((t) => t.name).sort(), ["check_package", "check_packages", "check_platform"]);
   await client.close();
 });
 
