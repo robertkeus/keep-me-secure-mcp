@@ -1,0 +1,23 @@
+GIT
+  remote: https://github.com/acme/internal.git
+  revision: abc
+  specs:
+    internal (1.0.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    nokogiri (1.10.0-x86_64-linux)
+      racc (~> 1.4)
+    rails (5.2.0)
+      nokogiri (>= 1.6)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  internal!
+  rails (= 5.2.0)
+
+BUNDLED WITH
+   2.4.0

@@ -6,6 +6,8 @@ import { VERSION } from "./version.ts";
 
 const INSTRUCTIONS =
   "Call check_project once at the start of each coding session and tell the user the result. " +
+  "Also call it, without an ecosystem, for any broad security question such as 'is my stack secure?' or 'do we have vulnerable dependencies?'. " +
+  "Tell the user what was covered and what was not. " +
   "Results are cached per day, so repeat calls are cheap. " +
   "Use check_package before adding a dependency or when asked about a specific package. " +
   "Never run an upgrade without the user's approval.";
@@ -23,13 +25,15 @@ export function createServer(): McpServer {
   server.registerTool(
     "check_project",
     {
-      title: "Do I need to patch anything?",
+      title: "Is my stack secure?",
       description:
-        "Checks the installed versions in this project's lockfiles against public security advisories. " +
+        "Use for questions like 'is my stack secure?', 'do I need to patch anything?' or 'do we have vulnerable packages?'. " +
+        "Checks every installed package, including transitive ones, in all lockfiles in this project against public security advisories. " +
         "verdict is yes, no or unknown; unknown means the check was incomplete, so never report it as safe. " +
-        "Supports PHP (Composer), JavaScript (npm, pnpm, Yarn) and Python (pip, Poetry, uv).",
+        "Supports PHP, JavaScript, Python, Go, Rust, Ruby, Java (Gradle lockfiles) and .NET. " +
+        "Does not cover language runtimes, OS packages or Docker base images.",
       inputSchema: {
-        ecosystem: z.string().optional().describe("Limit the check: php, npm or python"),
+        ecosystem: z.string().optional().describe("Only to limit the check: php, npm, python, go, rust, ruby, java or dotnet. Omit for a full check."),
         path: z.string().optional().describe("Subfolder relative to the project root. Omit to scan the whole project."),
         refresh: z.boolean().optional().describe("Ignore today's cached result"),
       },
@@ -44,7 +48,7 @@ export function createServer(): McpServer {
       title: "Is this package version safe?",
       description: "Checks one exact package version against public security advisories.",
       inputSchema: {
-        ecosystem: z.string().describe("php, npm or python"),
+        ecosystem: z.string().describe("php, npm, python, go, rust, ruby, java or dotnet"),
         name: z.string().describe("Package name, such as guzzlehttp/guzzle"),
         version: z.string().describe("Exact version, such as 7.4.0"),
       },

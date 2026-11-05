@@ -18,11 +18,27 @@ const ECOSYSTEMS: Record<string, Ecosystem> = {
   python: "PyPI",
   pip: "PyPI",
   pypi: "PyPI",
+  go: "Go",
+  golang: "Go",
+  rust: "crates.io",
+  cargo: "crates.io",
+  "crates.io": "crates.io",
+  ruby: "RubyGems",
+  gem: "RubyGems",
+  rubygems: "RubyGems",
+  java: "Maven",
+  kotlin: "Maven",
+  maven: "Maven",
+  gradle: "Maven",
+  dotnet: "NuGet",
+  ".net": "NuGet",
+  csharp: "NuGet",
+  nuget: "NuGet",
 };
 
 export function toEcosystem(input: string): Ecosystem {
   const ecosystem = ECOSYSTEMS[input.toLowerCase()];
-  if (!ecosystem) throw new Error(`Unsupported ecosystem "${input}". Use php, npm or python.`);
+  if (!ecosystem) throw new Error(`Unsupported ecosystem "${input}". Use php, npm, python, go, rust, ruby, java or dotnet.`);
   return ecosystem;
 }
 
@@ -55,7 +71,8 @@ export async function checkPackage(opts: { ecosystem: string; name: string; vers
 }
 
 export function summarize(r: Report): string {
-  if (r.verdict === "no") return `keep-me-secure: no known issues in ${r.coverage.scanned} packages.`;
+  const counts = Object.entries(r.coverage.by_ecosystem).map(([e, n]) => `${e} ${n}`).join(", ");
+  if (r.verdict === "no") return `keep-me-secure: no known issues in ${r.coverage.scanned} packages (${counts}).`;
   if (r.verdict === "unknown") {
     const why = r.coverage.unchecked.slice(0, 5).map((u) => `- ${u.item}: ${u.reason}`);
     return ["keep-me-secure: no issues found, but the check is incomplete.", ...why].join("\n");
@@ -66,7 +83,7 @@ export function summarize(r: Report): string {
   });
   const more = r.findings.length > 10 ? [`- and ${r.findings.length - 10} more`] : [];
   return [
-    `keep-me-secure: ${r.findings.length} package(s) need patching, most urgent: ${r.urgency}.`,
+    `keep-me-secure: ${r.findings.length} of ${r.coverage.scanned} package(s) need patching (${counts}), most urgent: ${r.urgency}.`,
     ...lines,
     ...more,
     "Tell the user, and call the check_project tool for advice and commands.",

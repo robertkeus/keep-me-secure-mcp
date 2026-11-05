@@ -26,8 +26,19 @@ test("manifest without lockfile is unchecked", async () => {
 });
 
 test("unsupported ecosystems are reported", async () => {
-  const s = await scanProject(dir("go"));
-  assert.deepEqual(s.unchecked.map((u) => u.item), ["go.mod"]);
+  const s = await scanProject(dir("dart"));
+  assert.deepEqual(s.unchecked.map((u) => u.item), ["pubspec.lock"]);
+});
+
+test("Maven and .NET projects without a lockfile are unchecked", async () => {
+  const s = await scanProject(dir("nolock-jvm"));
+  assert.deepEqual(s.unchecked.map((u) => u.item).sort(), ["app.csproj", "pom.xml"]);
+});
+
+test("a polyglot project scans every ecosystem", async () => {
+  const s = await scanProject(dir("stack"));
+  assert.deepEqual([...new Set(s.deps.map((d) => d.ecosystem))].sort(), ["Go", "Maven", "NuGet", "RubyGems", "crates.io"]);
+  assert.deepEqual(s.unchecked, []);
 });
 
 test("ecosystem filter", async () => {

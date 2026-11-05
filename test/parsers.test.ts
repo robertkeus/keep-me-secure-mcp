@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
+  parseCargoLock,
   parseComposerLock,
+  parseGemfileLock,
+  parseGoMod,
+  parseGradleLock,
+  parseNugetLock,
   parsePackageLock,
   parsePnpmLock,
   parsePoetryLock,
@@ -69,4 +74,39 @@ test("requirements.txt reads pins and reports the rest", () => {
   const r = parseRequirements(read("pip/requirements.txt"));
   assert.deepEqual(r.deps, [dep("django", "3.2.0", true), dep("requests", "2.25.0", true)]);
   assert.deepEqual(r.unchecked.map((u) => u.item), ["flask>=2.0"]);
+});
+
+test("go.mod reads require blocks, indirect markers and replaces", () => {
+  const r = parseGoMod(read("stack/go.mod"));
+  assert.deepEqual(r.deps, [
+    dep("golang.org/x/text", "0.3.0", true),
+    dep("github.com/old/lib", "2.0.0", false),
+    dep("github.com/fork/moved", "1.5.0", true),
+    dep("github.com/one/line", "1.0.0", true),
+  ]);
+  assert.deepEqual(r.private, ["github.com/acme/local"]);
+});
+
+test("Cargo.lock skips workspace members and flags private registries", () => {
+  const r = parseCargoLock(read("stack/Cargo.lock"), read("stack/Cargo.toml"));
+  assert.deepEqual(r.deps, [dep("time", "0.1.43", true), dep("libc", "0.2.150", false)]);
+  assert.deepEqual(r.private, ["internal"]);
+});
+
+test("Gemfile.lock strips platforms and flags git gems", () => {
+  const r = parseGemfileLock(read("stack/Gemfile.lock"));
+  assert.deepEqual(r.deps, [dep("nokogiri", "1.10.0", false), dep("rails", "5.2.0", true)]);
+  assert.deepEqual(r.private, ["internal"]);
+});
+
+test("gradle.lockfile", () => {
+  const name = "org.apache.logging.log4j:log4j-core";
+  assert.deepEqual(parseGradleLock(read("stack/gradle.lockfile")).deps, [dep(name, "2.14.1", false)]);
+  const direct = parseGradleLock(read("stack/gradle.lockfile"), `implementation("${name}:2.14.1")`);
+  assert.deepEqual(direct.deps, [dep(name, "2.14.1", true)]);
+});
+
+test("packages.lock.json skips project references", () => {
+  const r = parseNugetLock(read("stack/packages.lock.json"));
+  assert.deepEqual(r.deps, [dep("Newtonsoft.Json", "12.0.1", true), dep("System.Text.Json", "4.7.0", false)]);
 });

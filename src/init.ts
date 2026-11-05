@@ -10,7 +10,7 @@ const RUN =
 const HOOK = `${RUN} check 2>/dev/null || echo "keep-me-secure: security check skipped, is Docker running?"`;
 const AGENTS_RULE = `## Security check
 
-At the start of each coding session, call the \`check_project\` tool from the keep-me-secure MCP server and tell the user the result. Never run an upgrade without their approval.
+At the start of each coding session, and whenever the user asks whether their stack or dependencies are secure, call the \`check_project\` tool from the keep-me-secure MCP server and tell the user the result. Never run an upgrade without their approval.
 `;
 
 async function readJson(file: string): Promise<Record<string, any>> {
