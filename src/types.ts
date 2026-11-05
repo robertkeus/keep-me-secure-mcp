@@ -1,4 +1,4 @@
-export type Ecosystem = "Packagist" | "npm" | "PyPI";
+export type Ecosystem = "Packagist" | "npm" | "PyPI" | "Go" | "crates.io" | "RubyGems" | "Maven" | "NuGet";
 
 export interface Dep {
   ecosystem: Ecosystem;

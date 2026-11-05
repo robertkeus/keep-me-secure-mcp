@@ -1,7 +1,12 @@
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import {
+  parseCargoLock,
   parseComposerLock,
+  parseGemfileLock,
+  parseGoMod,
+  parseGradleLock,
+  parseNugetLock,
   parsePackageLock,
   parsePnpmLock,
   parsePoetryLock,
@@ -11,7 +16,7 @@ import {
 } from "./parsers.ts";
 import type { Ecosystem, Parsed, Scan } from "./types.ts";
 
-const SKIP_DIRS = new Set(["node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "__pycache__"]);
+const SKIP_DIRS = new Set(["node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", ".gradle", "__pycache__"]);
 const MAX_DEPTH = 5;
 
 const LOCKFILES: Record<string, { ecosystem: Ecosystem; parse: (lock: string, manifest?: string) => Parsed; manifest?: string }> = {
@@ -21,18 +26,28 @@ const LOCKFILES: Record<string, { ecosystem: Ecosystem; parse: (lock: string, ma
   "yarn.lock": { ecosystem: "npm", parse: parseYarnLock, manifest: "package.json" },
   "poetry.lock": { ecosystem: "PyPI", parse: parsePoetryLock, manifest: "pyproject.toml" },
   "uv.lock": { ecosystem: "PyPI", parse: parseUvLock, manifest: "pyproject.toml" },
+  "go.mod": { ecosystem: "Go", parse: parseGoMod },
+  "Cargo.lock": { ecosystem: "crates.io", parse: parseCargoLock, manifest: "Cargo.toml" },
+  "Gemfile.lock": { ecosystem: "RubyGems", parse: parseGemfileLock },
+  "gradle.lockfile": { ecosystem: "Maven", parse: parseGradleLock, manifest: "build.gradle" },
+  "packages.lock.json": { ecosystem: "NuGet", parse: parseNugetLock },
 };
 
 const MANIFESTS: Record<string, Ecosystem> = {
   "composer.json": "Packagist",
   "package.json": "npm",
   "pyproject.toml": "PyPI",
+  "Cargo.toml": "crates.io",
+  Gemfile: "RubyGems",
+  "pom.xml": "Maven",
+  "build.gradle": "Maven",
+  "build.gradle.kts": "Maven",
 };
 
-const UNSUPPORTED = new Set(["go.mod", "Cargo.lock", "Gemfile.lock", "pom.xml", "packages.lock.json"]);
+const UNSUPPORTED = new Set(["mix.lock", "pubspec.lock", "Package.resolved"]);
 
 /** Names end up in shell commands the agent may run, so a crafted lockfile must not get through. */
-export const isSafe = (s: string) => /^[@a-zA-Z0-9][a-zA-Z0-9@._/+-]*$/.test(s);
+export const isSafe = (s: string) => /^[@a-zA-Z0-9][a-zA-Z0-9@._/+:-]*$/.test(s);
 
 const isRequirements = (file: string) => /^requirements.*\.txt$/.test(file);
 
@@ -64,8 +79,9 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
     locked.push({ dir: dirname(file), ecosystem: spec.ecosystem });
     if (only && spec.ecosystem !== only) continue;
     try {
-      const manifestPath = spec.manifest && join(dirname(file), spec.manifest);
-      const manifest = manifestPath && names.has(manifestPath) ? await readFile(manifestPath, "utf8") : undefined;
+      const base = spec.manifest && join(dirname(file), spec.manifest);
+      const manifestPath = base && [base, `${base}.kts`].find((p) => names.has(p));
+      const manifest = manifestPath ? await readFile(manifestPath, "utf8") : undefined;
       const parsed = spec.parse(await readFile(file, "utf8"), manifest);
       for (const d of parsed.deps) {
         if (isSafe(d.name) && isSafe(d.version)) scan.deps.push({ ...d, ecosystem: spec.ecosystem, lockfile: rel });
@@ -79,7 +95,8 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
   }
 
   for (const file of files) {
-    const ecosystem = MANIFESTS[file.slice(file.lastIndexOf("/") + 1)];
+    const base = file.slice(file.lastIndexOf("/") + 1);
+    const ecosystem = base.endsWith(".csproj") ? "NuGet" : MANIFESTS[base];
     if (!ecosystem || (only && ecosystem !== only)) continue;
     const dir = dirname(file);
     if (!locked.some((l) => l.ecosystem === ecosystem && covers(l.dir, dir)))

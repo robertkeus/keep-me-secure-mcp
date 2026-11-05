@@ -2,9 +2,20 @@
 
 An MCP server that tells your coding agent whether your installed packages need patching.
 
-Every day when you start coding, it checks your lockfiles against public security advisories. You can also ask your agent directly: "Do I need to patch any of my PHP packages?" The answer is yes, no or unknown, with advice on what to do.
+Every day when you start coding, it checks every package in your lockfiles against public security advisories. You can also ask your agent directly: "Is my stack secure?" or "Do I need to patch any of my PHP packages?" The answer is yes, no or unknown, with advice on what to do.
 
-Supports PHP (Composer), JavaScript (npm, pnpm, Yarn) and Python (pip, Poetry, uv).
+| Language | Reads |
+|---|---|
+| PHP | `composer.lock` |
+| JavaScript | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` |
+| Python | `requirements*.txt`, `poetry.lock`, `uv.lock` |
+| Go | `go.mod` |
+| Rust | `Cargo.lock` |
+| Ruby | `Gemfile.lock` |
+| Java, Kotlin | `gradle.lockfile` |
+| .NET | `packages.lock.json` |
+
+Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
 ## Setup
 
@@ -30,7 +41,7 @@ An MCP server can't start itself, so the hook and the `AGENTS.md` rule are what 
 
 | Tool | Question it answers | Input |
 |---|---|---|
-| `check_project` | Do I need to patch anything? | `ecosystem`, `path` and `refresh`, all optional |
+| `check_project` | Is my stack secure? Do I need to patch anything? | `ecosystem`, `path` and `refresh`, all optional |
 | `check_package` | Is this exact version safe? | `ecosystem`, `name`, `version` |
 
 Example result, shortened:
@@ -49,7 +60,7 @@ Example result, shortened:
     "advice": "Upgrade guzzlehttp/guzzle to 7.15.2 or later.",
     "command": "composer update guzzlehttp/guzzle --with-dependencies"
   }],
-  "coverage": { "scanned": 2, "private": ["acme/internal"], "unchecked": [] }
+  "coverage": { "scanned": 2, "by_ecosystem": { "Packagist": 2 }, "private": ["acme/internal"], "unchecked": [] }
 }
 ```
 
@@ -71,6 +82,7 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 
 - Names and versions of public packages are sent to [OSV.dev](https://osv.dev). When something is affected, CVE ids go to [FIRST EPSS](https://www.first.org/epss/). The CISA KEV feed is downloaded.
 - Packages from private registries, git or local paths are not sent anywhere. They're listed in `coverage.private` and aren't checked.
+- Go, Java and .NET lockfiles don't show which registry a package came from, so private package names in those ecosystems are sent to OSV. Local `replace` paths in `go.mod` are the exception.
 - Results are cached per day in the `kms-cache` Docker volume. A lockfile change triggers a new check.
 
 ## Security
@@ -84,6 +96,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Limits
 
+- It covers third-party packages only, not language runtimes, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
 - A `no` means no known issue at `checked_at`. OSV can lag behind an incident by a few hours.
 - It doesn't check whether your code actually reaches the vulnerable function.
 - For a transitive dependency, the fix may have to come from upgrading its parent package.

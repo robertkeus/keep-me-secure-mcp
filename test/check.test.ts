@@ -70,11 +70,11 @@ test("check_package refuses ranges", async () => {
 
 test("ecosystem aliases", () => {
   assert.equal(toEcosystem("PHP"), "Packagist");
-  assert.throws(() => toEcosystem("ruby"), /Unsupported/);
+  assert.throws(() => toEcosystem("cobol"), /Unsupported/);
 });
 
 test("summary is one line when clean", async () => {
   lock("1.0.0");
   countOsv();
-  assert.match(summarize(await checkProject()), /^keep-me-secure: no known issues in 1 packages\.$/);
+  assert.match(summarize(await checkProject()), /^keep-me-secure: no known issues in 1 packages \(npm 1\)\.$/);
 });

@@ -156,3 +156,100 @@ export function parseUvLock(lock: string, manifest?: string): Parsed {
   }
   return out;
 }
+
+export function parseGoMod(text: string): Parsed {
+  const out = empty();
+  const required: { name: string; version: string; direct: boolean }[] = [];
+  const replaced = new Map<string, { path: string; version?: string }>();
+  let block = "";
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    const open = line.match(/^(require|replace)\s*\($/);
+    if (open) block = open[1]!;
+    else if (line === ")") block = "";
+    else {
+      const body = block ? line : line.replace(/^(require|replace)\s+/, "");
+      const kind = block || line.match(/^(require|replace)\s/)?.[1];
+      const swap = body.match(/^(\S+)(?:\s+v\S+)?\s+=>\s+(\S+)(?:\s+v(\S+))?/);
+      const req = body.match(/^(\S+)\s+v(\S+)(\s*\/\/\s*indirect)?/);
+      if (kind === "replace" && swap) replaced.set(swap[1]!, { path: swap[2]!, version: swap[3] });
+      else if (kind === "require" && req) required.push({ name: req[1]!, version: req[2]!, direct: !req[3] });
+    }
+  }
+  for (const r of required) {
+    const swap = replaced.get(r.name);
+    if (swap && !swap.version) out.private.push(r.name);
+    else
+      out.deps.push({
+        name: swap?.path ?? r.name,
+        version: (swap?.version ?? r.version).replace(/\+incompatible$/, ""),
+        direct: r.direct,
+      });
+  }
+  return out;
+}
+
+export function parseCargoLock(lock: string, manifest?: string): Parsed {
+  const out = empty();
+  const m = manifest ? (parseToml(manifest) as Json) : {};
+  const direct = new Set(
+    [m.dependencies, m["dev-dependencies"], m["build-dependencies"], m.workspace?.dependencies].flatMap((d) =>
+      Object.keys(d ?? {}),
+    ),
+  );
+  for (const p of ((parseToml(lock) as Json).package ?? []) as Json[]) {
+    if (!p.source) continue;
+    if (/crates\.io-index|index\.crates\.io/.test(p.source))
+      out.deps.push({ name: p.name, version: p.version, direct: direct.has(p.name) });
+    else out.private.push(p.name);
+  }
+  return out;
+}
+
+export function parseGemfileLock(lock: string): Parsed {
+  const out = empty();
+  const direct = new Set<string>();
+  const gems: { name: string; version: string; isPublic: boolean }[] = [];
+  let section = "";
+  let remote = "";
+  for (const line of lock.split(/\r?\n/)) {
+    if (/^\S/.test(line)) {
+      section = line.trim();
+      remote = "";
+      continue;
+    }
+    remote = line.match(/^ {2}remote: (\S+)/)?.[1] ?? remote;
+    const spec = line.match(/^ {4}(\S+) \(([^)]+)\)$/);
+    if (spec && ["GEM", "GIT", "PATH"].includes(section))
+      gems.push({
+        name: spec[1]!,
+        version: spec[2]!.replace(/-[a-z].*$/, ""),
+        isPublic: section === "GEM" && remote.startsWith("https://rubygems.org"),
+      });
+    const dep = section === "DEPENDENCIES" && line.match(/^ {2}([^\s!]+)/);
+    if (dep) direct.add(dep[1]!);
+  }
+  for (const { name, version, isPublic } of gems) {
+    if (isPublic) out.deps.push({ name, version, direct: direct.has(name) });
+    else out.private.push(name);
+  }
+  return out;
+}
+
+export function parseGradleLock(lock: string, manifest = ""): Parsed {
+  const out = empty();
+  for (const line of lock.split(/\r?\n/)) {
+    const m = line.match(/^([^#:=\s]+:[^:=\s]+):([^:=\s]+)=/);
+    if (m) out.deps.push({ name: m[1]!, version: m[2]!, direct: manifest.includes(m[1]!) });
+  }
+  return out;
+}
+
+export function parseNugetLock(lock: string): Parsed {
+  const out = empty();
+  for (const framework of Object.values<Json>(JSON.parse(lock).dependencies ?? {}))
+    for (const [name, p] of Object.entries<Json>(framework))
+      if (p.type !== "Project" && isVersion(p.resolved))
+        out.deps.push({ name, version: p.resolved, direct: p.type === "Direct" });
+  return out;
+}
