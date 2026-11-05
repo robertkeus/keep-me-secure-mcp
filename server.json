@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.robertkeus/keep-me-secure-mcp",
+  "title": "Keep Me Secure",
+  "description": "Tells your coding agent whether your installed packages need patching, with advice on what to do.",
+  "repository": {
+    "url": "https://github.com/robertkeus/keep-me-secure-mcp",
+    "source": "github"
+  },
+  "version": "1.1.1",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/robertkeus/keep-me-secure-mcp:v1.1.1",
+      "transport": { "type": "stdio" },
+      "runtimeArguments": [
+        { "type": "named", "name": "--read-only" },
+        { "type": "named", "name": "--cap-drop", "value": "ALL" },
+        {
+          "type": "named",
+          "name": "-v",
+          "value": "{project_dir}:/workspace:ro",
+          "isRequired": true,
+          "variables": {
+            "project_dir": {
+              "description": "Absolute path to the project to scan",
+              "isRequired": true,
+              "format": "filepath"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
