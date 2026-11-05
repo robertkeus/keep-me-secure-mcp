@@ -1,4 +1,4 @@
-FROM node:26-slim AS deps
+FROM node:26-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
@@ -13,7 +13,7 @@ COPY tsconfig.json ./
 COPY src src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:26-slim
+FROM node:26-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072
 LABEL io.modelcontextprotocol.server.name="io.github.robertkeus/keep-me-secure-mcp"
 ENV NODE_ENV=production KMS_CACHE_DIR=/cache
 WORKDIR /app

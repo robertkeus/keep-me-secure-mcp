@@ -163,7 +163,7 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 
 - Names and versions of public packages are sent to [OSV.dev](https://osv.dev). When something is affected, CVE ids go to [FIRST EPSS](https://www.first.org/epss/). The CISA KEV feed is downloaded.
 - Packages from private registries, git or local paths are not sent anywhere. They're listed in `coverage.private` and aren't checked.
-- Go, Java and .NET lockfiles don't show which registry a package came from, so private package names in those ecosystems are sent to OSV. Local `replace` paths in `go.mod` are the exception.
+- Go, Java, .NET and most pnpm lockfiles don't show which registry a package came from, so private package names in those can be sent to OSV. Local `replace` paths in `go.mod` are the exception.
 - Results are cached per day, in `~/.cache/keep-me-secure` for the plugin and the `kms-cache` volume for Docker. A lockfile change triggers a new check.
 
 ## Security
@@ -171,7 +171,7 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 - The Docker container gets your project read-only, runs as a non-root user with a read-only filesystem and no capabilities.
 - It never installs or upgrades anything. The agent proposes a command and you approve it.
 - Images are published with provenance and an SBOM.
-- Advisory text is shortened, flattened and labelled `summary_untrusted`, because it's third-party text that reaches your agent. Advice and commands are built only from validated package names and versions.
+- Anything that reaches your agent is treated as untrusted. Package names, versions and advisory ids must match strict patterns, file paths and lockfile text are reduced to safe characters, and advisory text is shortened, flattened and labelled `summary_untrusted`. That last field is still third-party text, so agents are told to treat it as data.
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
 

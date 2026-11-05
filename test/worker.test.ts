@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
-import worker, { clientKey, RateLimiter } from "../src/worker.ts";
+import { clientKey } from "../src/handler.ts";
+import worker, { RateLimiter } from "../src/worker.ts";
 
 const allowed = async (limiter: RateLimiter, n: number) => {
   let ok = 0;

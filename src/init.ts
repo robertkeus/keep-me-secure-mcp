@@ -32,7 +32,7 @@ export async function init(): Promise<string[]> {
   mcp.mcpServers = { ...mcp.mcpServers, "keep-me-secure": { command: "sh", args: ["-c", `exec ${RUN}`] } };
 
   const settings = await readJson(".claude/settings.json");
-  const ours = (h: any) => h.command?.includes("keep-me-secure");
+  const ours = (h: any) => h.command?.includes("ghcr.io/robertkeus/keep-me-secure-mcp:");
   const sessionStart: any[] = (settings.hooks?.SessionStart ?? [])
     .map((g: any) => ({ ...g, hooks: g.hooks?.filter((h: any) => !ours(h)) }))
     .filter((g: any) => g.hooks?.length);

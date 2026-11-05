@@ -1,5 +1,5 @@
 import { createServer as createHttpServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { handle, MAX_BODY_BYTES } from "./handler.ts";
+import { clientKey, handle, MAX_BODY_BYTES } from "./handler.ts";
 
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 120;
@@ -58,7 +58,7 @@ export function serve(): Server {
       const headers = new Headers();
       for (const [k, v] of Object.entries(req.headers)) if (typeof v === "string") headers.set(k, v);
       const request = new Request(`http://${req.headers.host ?? "localhost"}${req.url}`, { method: req.method, headers, body });
-      await send(res, await handle(request, clientIp(req), limits));
+      await send(res, await handle(request, clientKey(clientIp(req)), limits));
     } catch {
       if (!res.headersSent) res.writeHead(500).end("Internal error\n");
     }
