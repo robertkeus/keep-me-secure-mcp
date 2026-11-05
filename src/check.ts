@@ -91,6 +91,8 @@ export async function checkPackages(packages: PackageInput[]): Promise<Report> {
 }
 
 export function summarize(r: Report): string {
+  const noProject = r.coverage.unchecked.length === 1 && r.coverage.unchecked[0]!.item === "project";
+  if (noProject) return "";
   const counts = Object.entries(r.coverage.by_ecosystem).map(([e, n]) => `${e} ${n}`).join(", ");
   if (r.verdict === "no") return `keep-me-secure: no known issues in ${r.coverage.scanned} packages (${counts}).`;
   if (r.verdict === "unknown") {

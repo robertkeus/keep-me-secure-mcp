@@ -84,13 +84,13 @@
 <div class="tabs" role="group" aria-label="How to connect" hidden>
 <button type="button" class="btn" data-tab="claude" aria-pressed="true">Claude Code</button>
 <button type="button" class="btn" data-tab="other" aria-pressed="false">Other agents</button>
-<button type="button" class="btn" data-tab="local" aria-pressed="false">Local</button>
+<button type="button" class="btn" data-tab="local" aria-pressed="false">Docker</button>
 </div>
 
 <div class="panel" data-panel="claude">
 <h3>Claude Code</h3>
-<div class="cmd"><code><span class="dim">$ </span><span data-copy>claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp</span></code><button type="button" class="copy" hidden>copy</button></div>
-<p class="dim">Paste this in your terminal. No account or Docker needed.</p>
+<div class="cmd"><code><span class="dim">$ </span><span data-copy>claude plugin install keep-me-secure --marketplace robertkeus/keep-me-secure-mcp</span></code><button type="button" class="copy" hidden>copy</button></div>
+<p class="dim">Paste this in your terminal. It checks by itself each day when you start coding. Needs Node.js 22 or newer, no account or Docker.</p>
 </div>
 
 <div class="panel" data-panel="other">
@@ -100,9 +100,9 @@
 </div>
 
 <div class="panel" data-panel="local">
-<h3>Local</h3>
+<h3>Docker</h3>
 <div class="cmd"><code><span class="dim">$ </span><span data-copy>docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertkeus/keep-me-secure-mcp:latest init</span></code><button type="button" class="copy" hidden>copy</button></div>
-<p class="dim">Run this in your project. Needs Docker, and checks by itself each time you start coding in Claude Code.</p>
+<p class="dim">Prefer Docker? Run this in your project.</p>
 </div>
 </section>
 
@@ -130,7 +130,7 @@
 
 <section aria-labelledby="data">
 <h2 id="data">Your data</h2>
-<p class="dim">Hosted: your agent sends package names and versions. We don't store them, though Cloudflare, our host, may keep its own standard request data. Local: your lockfiles stay on your machine, and only public package names and versions are looked up.</p>
+<p class="dim">Claude Code plugin and Docker: your lockfiles stay on your machine, and only public package names and versions are looked up. Hosted URL: your agent sends package names and versions to us. We don't store them, though Cloudflare, our host, may keep its own standard request data.</p>
 </section>
 
 <section class="faq" aria-labelledby="faq">

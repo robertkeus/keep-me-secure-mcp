@@ -73,6 +73,14 @@ test("ecosystem aliases", () => {
   assert.throws(() => toEcosystem("cobol"), /Unsupported/);
 });
 
+test("a folder with no lockfiles stays silent", async () => {
+  const start = process.cwd();
+  process.chdir(mkdtempSync(join(tmpdir(), "kms-empty-")));
+  countOsv();
+  assert.equal(summarize(await checkProject()), "");
+  process.chdir(start);
+});
+
 test("summary is one line when clean", async () => {
   lock("1.0.0");
   countOsv();
