@@ -35,7 +35,35 @@ This adds or updates three files:
 
 The config pins the image version, so a new release never reaches your project unannounced. Run the command again to upgrade.
 
-An MCP server can't start itself, so the hook and the `AGENTS.md` rule are what make the check happen each day. Agents that use their own config file need the `.mcp.json` entry copied there.
+An MCP server can't start itself, so the hook and the `AGENTS.md` rule are what make the check happen each day.
+
+### Other agents
+
+`init` only configures Claude Code directly, but the `AGENTS.md` rule works for other agents too. Keep it: in testing, Codex only called the tool when that rule was present.
+
+Codex, in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.keep-me-secure]
+command = "sh"
+args = ["-c", "exec docker run -i --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges -v \"$PWD:/workspace:ro\" -v kms-cache:/cache ghcr.io/robertkeus/keep-me-secure-mcp:latest"]
+```
+
+opencode, in `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "keep-me-secure": {
+      "type": "local",
+      "command": ["sh", "-c", "exec docker run -i --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges -v \"$PWD:/workspace:ro\" -v kms-cache:/cache ghcr.io/robertkeus/keep-me-secure-mcp:latest"],
+      "enabled": true
+    }
+  }
+}
+```
+
+Tested with Claude Code, Codex and opencode. Cursor and other MCP clients should work with the same command, but haven't been tested. The agent must start in your project folder, because `$PWD` is what gets scanned.
 
 ## Tools
 

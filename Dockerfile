@@ -1,4 +1,4 @@
-FROM node:22-slim AS deps
+FROM node:26-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
@@ -13,7 +13,8 @@ COPY tsconfig.json ./
 COPY src src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:22-slim
+FROM node:26-slim
+LABEL io.modelcontextprotocol.server.name="io.github.robertkeus/keep-me-secure-mcp"
 ENV NODE_ENV=production KMS_CACHE_DIR=/cache
 WORKDIR /app
 COPY --from=build /app/package.json ./
