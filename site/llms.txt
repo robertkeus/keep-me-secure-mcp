@@ -27,6 +27,11 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertke
 - Languages: PHP, JavaScript, Python, Go, Rust, Ruby, Java, Kotlin and .NET
 - Data: OSV.dev, the CISA Known Exploited Vulnerabilities list and FIRST EPSS
 - Not covered: language runtimes, servers, Docker images and your own code
+- Test and example folders are skipped by default, and listed in the result
+
+## When it runs
+
+In Claude Code, the plugin runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The hosted URL only checks when you ask, and only what your agent sends.
 
 ## Links
 

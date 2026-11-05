@@ -96,7 +96,21 @@ h2, h3 { margin: 0; font-size: 15px; }
 .cmd code { flex: 999 1 320px; min-width: 0; font: inherit; padding: 14px 16px; overflow-wrap: anywhere; }
 .copy { flex: 1 0 96px; border: 0; font-weight: 700; min-height: 48px; }
 
-.term { border: 1px solid var(--fg); }
+.hero-anim img { display: block; width: 100%; height: auto; }
+.for-dark { display: none !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .for-light { display: none !important; }
+  :root:not([data-theme="light"]) .for-dark { display: block !important; }
+}
+:root[data-theme="dark"] .for-light { display: none !important; }
+:root[data-theme="dark"] .for-dark { display: block !important; }
+
+/* The animation's text is too small on a phone, so phones get the plain version. */
+.term { display: none; border: 1px solid var(--fg); }
+@media (max-width: 640px) {
+  .hero-anim { display: none; }
+  .term { display: block; }
+}
 .term-q { padding: 14px 16px; border-bottom: 1px solid var(--line); }
 .term-a { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .term ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }

@@ -35,7 +35,7 @@ The site in `site/` is plain HTML, CSS and JavaScript, served by the Worker. Any
 
 ## README animation
 
-`assets/hero.py` generates the light and dark SVGs. Edit it and run it, rather than editing the SVGs.
+`assets/hero.py` generates the light and dark SVGs for the README and the website. Edit it and run it, rather than editing the SVGs.
 
 ## Rules that keep the tool trustworthy
 
