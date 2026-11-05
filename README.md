@@ -37,7 +37,7 @@ Connect your agent to `https://mcp.keepmesecure.dev/mcp`. For Claude Code:
 claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp
 ```
 
-No account or token is needed. It runs on Cloudflare Workers.
+No account or token is needed. It runs on Cloudflare Workers. Each IP address gets 20 checks per minute.
 
 - Your agent reads your lockfiles and sends package names and versions. It's told to leave out private packages, but that depends on the agent. If your package names are sensitive, use the local version.
 - The server doesn't log or store package lists, and Worker logging is turned off. Your IP address is used as the rate limit key. Package names and versions are passed to OSV, and Cloudflare may keep its own standard request data.

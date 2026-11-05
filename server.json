@@ -7,15 +7,24 @@
     "url": "https://github.com/robertkeus/keep-me-secure-mcp",
     "source": "github"
   },
-  "version": "1.1.1",
+  "version": "1.2.0",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/robertkeus/keep-me-secure-mcp:v1.1.1",
-      "transport": { "type": "stdio" },
+      "identifier": "ghcr.io/robertkeus/keep-me-secure-mcp:v1.2.0",
+      "transport": {
+        "type": "stdio"
+      },
       "runtimeArguments": [
-        { "type": "named", "name": "--read-only" },
-        { "type": "named", "name": "--cap-drop", "value": "ALL" },
+        {
+          "type": "named",
+          "name": "--read-only"
+        },
+        {
+          "type": "named",
+          "name": "--cap-drop",
+          "value": "ALL"
+        },
         {
           "type": "named",
           "name": "-v",
@@ -30,6 +39,13 @@
           }
         }
       ]
+    }
+  ],
+  "websiteUrl": "https://keepmesecure.dev",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.keepmesecure.dev/mcp"
     }
   ]
 }

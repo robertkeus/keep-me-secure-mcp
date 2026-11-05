@@ -25,10 +25,11 @@ namespace_id = "1001"
   limit = 120
   period = 60
 
-[[ratelimits]]
-name = "CHECK_LIMIT"
-namespace_id = "1002"
+# Exact per-client limit on checks, the requests that cost something.
+[[durable_objects.bindings]]
+name = "CHECKS"
+class_name = "RateLimiter"
 
-  [ratelimits.simple]
-  limit = 20
-  period = 60
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
