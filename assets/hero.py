@@ -138,4 +138,5 @@ def render(theme):
 
 
 for name in THEMES:
-    Path(__file__).with_name(f"hero-{name}.svg").write_text(render(name), encoding="utf-8")
+    for folder in ("assets", "site"):
+        (Path(__file__).parent.parent / folder / f"hero-{name}.svg").write_text(render(name), encoding="utf-8")

@@ -49,6 +49,8 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "What is Keep Me Secure?", "acceptedAnswer": { "@type": "Answer", "text": "Keep Me Secure is a free, open source MCP server. It lets your coding agent check the packages in your project against public security advisories, then answer yes, no or unknown, with what to do next." } },
+        { "@type": "Question", "name": "When does it check?", "acceptedAnswer": { "@type": "Answer", "text": "In Claude Code it runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The result is saved on your machine, not in your project. You can also ask at any time." } },
+        { "@type": "Question", "name": "Does it check test folders?", "acceptedAnswer": { "@type": "Answer", "text": "No. Lockfiles in test and example folders usually don't ship, so they're skipped to avoid false alarms. They're listed in the result, and you can still check one by asking for that folder." } },
         { "@type": "Question", "name": "Which coding agents does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "It's tested with Claude Code, Codex and opencode. Other agents that support MCP should work too." } },
         { "@type": "Question", "name": "Which languages and lockfiles does it support?", "acceptedAnswer": { "@type": "Answer", "text": "PHP (composer.lock), JavaScript (package-lock.json, pnpm-lock.yaml, yarn.lock), Python (requirements.txt, poetry.lock, uv.lock), Go (go.mod), Rust (Cargo.lock), Ruby (Gemfile.lock), Java and Kotlin (gradle.lockfile) and .NET (packages.lock.json)." } },
         { "@type": "Question", "name": "Where does the security data come from?", "acceptedAnswer": { "@type": "Answer", "text": "OSV.dev for advisories, the CISA Known Exploited Vulnerabilities list for active attacks, and FIRST EPSS for the chance of exploitation." } },
@@ -96,7 +98,7 @@
 <div class="panel" data-panel="other">
 <h3>Other agents</h3>
 <div class="cmd"><code><span data-copy>https://mcp.keepmesecure.dev/mcp</span></code><button type="button" class="copy" hidden>copy</button></div>
-<p class="dim">Add this URL as a remote MCP server in your agent's settings.</p>
+<p class="dim">Add this URL as a remote MCP server in your agent's settings. Your agent sends the package list, so it only checks what your agent sends. For a full check every time, use Docker.</p>
 </div>
 
 <div class="panel" data-panel="local">
@@ -108,6 +110,10 @@
 
 <section aria-labelledby="ask">
 <h2 id="ask">2. Ask your agent</h2>
+<div class="hero-anim">
+<img class="for-light" src="/hero-light.svg" width="880" height="460" alt="A terminal. Someone asks: Is my stack secure? It scans 111 packages across PHP, npm, Go and Java, then answers no: 18 packages need patching, starting with log4j-core and spring-beans.">
+<img class="for-dark" src="/hero-dark.svg" width="880" height="460" alt="A terminal. Someone asks: Is my stack secure? It scans 111 packages across PHP, npm, Go and Java, then answers no: 18 packages need patching, starting with log4j-core and spring-beans.">
+</div>
 <div class="term">
 <div class="term-q"><span class="dim">&gt; </span>Is my stack secure?</div>
 <div class="term-a">
@@ -124,7 +130,7 @@
 
 <section aria-labelledby="checks">
 <h2 id="checks">What it checks</h2>
-<p>PHP, JavaScript, Python, Go, Rust, Ruby, Java and .NET.</p>
+<p>Every package in your lockfiles, including the ones you didn't install directly, for PHP, JavaScript, Python, Go, Rust, Ruby, Java and .NET.</p>
 <p class="dim">Third-party packages only. It doesn't check language runtimes, servers, Docker images or your own code.</p>
 </section>
 
@@ -137,6 +143,10 @@
 <h2 id="faq">Questions</h2>
 <h3>What is Keep Me Secure?</h3>
 <p class="dim">Keep Me Secure is a free, open source MCP server. It lets your coding agent check the packages in your project against public security advisories, then answer yes, no or unknown, with what to do next.</p>
+<h3>When does it check?</h3>
+<p class="dim">In Claude Code it runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The result is saved on your machine, not in your project. You can also ask at any time.</p>
+<h3>Does it check test folders?</h3>
+<p class="dim">No. Lockfiles in test and example folders usually don't ship, so they're skipped to avoid false alarms. They're listed in the result, and you can still check one by asking for that folder.</p>
 <h3>Which coding agents does it work with?</h3>
 <p class="dim">It's tested with Claude Code, Codex and opencode. Other agents that support MCP should work too.</p>
 <h3>Which languages and lockfiles does it support?</h3>
