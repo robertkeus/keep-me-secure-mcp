@@ -1,5 +1,7 @@
 # keep-me-secure-mcp
 
+Website: [keepmesecure.dev](https://keepmesecure.dev)
+
 An MCP server that tells your coding agent whether your installed packages need patching.
 
 Every day when you start coding, it checks every package in your lockfiles against public security advisories. You can also ask your agent directly: "Is my stack secure?" or "Do I need to patch any of my PHP packages?" The answer is yes, no or unknown, with advice on what to do.
@@ -35,7 +37,7 @@ Connect your agent to `https://mcp.keepmesecure.dev/mcp`. For Claude Code:
 claude mcp add --transport http keep-me-secure https://mcp.keepmesecure.dev/mcp
 ```
 
-No account or token is needed. Each IP address gets about 20 checks per minute. It runs on Cloudflare Workers, where limits apply per Cloudflare location and are approximate.
+No account or token is needed. It runs on Cloudflare Workers.
 
 - Your agent reads your lockfiles and sends package names and versions. It's told to leave out private packages, but that depends on the agent. If your package names are sensitive, use the local version.
 - The server doesn't log or store package lists, and Worker logging is turned off. Your IP address is used as the rate limit key. Package names and versions are passed to OSV, and Cloudflare may keep its own standard request data.

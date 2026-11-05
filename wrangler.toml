@@ -3,7 +3,15 @@ main = "src/worker.ts"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = false
-routes = [{ pattern = "mcp.keepmesecure.dev", custom_domain = true }]
+routes = [
+  { pattern = "mcp.keepmesecure.dev", custom_domain = true },
+  { pattern = "keepmesecure.dev/*", zone_name = "keepmesecure.dev" },
+  { pattern = "www.keepmesecure.dev/*", zone_name = "keepmesecure.dev" },
+]
+
+# The website. Anything that isn't a file here, such as /mcp, reaches the Worker.
+[assets]
+directory = "site"
 
 # Package lists show what a company runs, so nothing is logged.
 [observability]
