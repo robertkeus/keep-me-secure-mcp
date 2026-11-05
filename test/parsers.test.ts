@@ -73,7 +73,7 @@ test("uv.lock skips the root project", () => {
 test("requirements.txt reads pins and reports the rest", () => {
   const r = parseRequirements(read("pip/requirements.txt"));
   assert.deepEqual(r.deps, [dep("django", "3.2.0", true), dep("requests", "2.25.0", true)]);
-  assert.deepEqual(r.unchecked.map((u) => u.item), ["flask>=2.0"]);
+  assert.deepEqual(r.unchecked.map((u) => u.item), ["flask", "requirements"]);
 });
 
 test("go.mod reads require blocks, indirect markers and replaces", () => {

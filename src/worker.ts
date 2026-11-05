@@ -1,5 +1,5 @@
 import { setCacheStore } from "./cache.ts";
-import { handle } from "./handler.ts";
+import { clientKey, handle } from "./handler.ts";
 
 interface Env {
   REQUEST_LIMIT: { limit(options: { key: string }): Promise<{ success: boolean }> };
@@ -44,9 +44,6 @@ export class RateLimiter {
     return new Response(null, { status: this.count <= MAX_CHECKS_PER_WINDOW ? 204 : 429 });
   }
 }
-
-/** A single IPv6 client usually controls a whole /64, so that's what gets one limit. */
-export const clientKey = (ip: string) => (ip.includes(":") ? ip.split(":").slice(0, 4).join(":") : ip);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { checkPackage, checkPackages, checkProject } from "./check.ts";
+import { checkPackage, checkPackages, checkProject, InputError } from "./check.ts";
 import type { Report } from "./report.ts";
 import { VERSION } from "./version.ts";
 
@@ -21,7 +21,10 @@ const HOSTED_INSTRUCTIONS =
 const tool = (run: () => Promise<Report>) =>
   run().then(
     (report) => ({ content: [{ type: "text" as const, text: JSON.stringify(report, null, 2) }] }),
-    (e: Error) => ({ content: [{ type: "text" as const, text: e.message }], isError: true }),
+    (e: Error) => ({
+      content: [{ type: "text" as const, text: e instanceof InputError ? e.message : "The check failed." }],
+      isError: true,
+    }),
   );
 
 export function createServer({ hosted = false } = {}): McpServer {

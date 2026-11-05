@@ -8,8 +8,12 @@ import { createServer } from "./server.ts";
 const command = process.argv[2];
 
 if (command === "check") {
-  const summary = summarize(await checkProject());
-  if (summary) console.log(summary);
+  try {
+    const summary = summarize(await checkProject());
+    if (summary) console.log(summary);
+  } catch {
+    console.log("keep-me-secure: the check could not run in this project.");
+  }
 } else if (command === "init") {
   console.log(`keep-me-secure: wrote ${(await init()).join(", ")}`);
 } else if (command === "serve") {

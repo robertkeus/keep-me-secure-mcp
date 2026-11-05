@@ -1,10 +1,14 @@
 import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { readCache, today, writeCache } from "./cache.ts";
 import { normalizePy } from "./parsers.ts";
-import { buildReport, type Report } from "./report.ts";
-import { isSafe, scanProject } from "./scan.ts";
+import { buildReport, NO_LOCKFILE, type Report } from "./report.ts";
+import { isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
 import type { Dep, Ecosystem, Scan } from "./types.ts";
+
+/** A message written here, safe to show. Anything else may quote file paths, so it's never passed on. */
+export class InputError extends Error {}
 
 const ECOSYSTEMS: Record<string, Ecosystem> = {
   php: "Packagist",
@@ -37,16 +41,22 @@ const ECOSYSTEMS: Record<string, Ecosystem> = {
 };
 
 export function toEcosystem(input: string): Ecosystem {
-  const ecosystem = ECOSYSTEMS[input.toLowerCase()];
-  if (!ecosystem) throw new Error(`Unsupported ecosystem "${input}". Use php, npm, python, go, rust, ruby, java or dotnet.`);
+  const ecosystem = Object.hasOwn(ECOSYSTEMS, input.toLowerCase()) ? ECOSYSTEMS[input.toLowerCase()] : undefined;
+  if (!ecosystem) throw new InputError("Unsupported ecosystem. Use php, npm, python, go, rust, ruby, java or dotnet.");
   return ecosystem;
 }
 
 function projectRoot(path = "."): string {
-  const root = resolve(process.cwd(), path);
-  const rel = relative(process.cwd(), root);
-  if (rel.startsWith("..") || resolve(rel) !== root)
-    throw new Error("path must be a subfolder of the project, relative to its root. Omit it to scan the whole project.");
+  const refuse = () => new InputError("path must be a subfolder of the project, relative to its root. Omit it to scan the whole project.");
+  const cwd = realpathSync(process.cwd());
+  let root: string;
+  try {
+    root = realpathSync(resolve(cwd, path));
+  } catch {
+    throw refuse();
+  }
+  const rel = relative(cwd, root);
+  if (rel.startsWith("..") || resolve(cwd, rel) !== root) throw refuse();
   return root;
 }
 
@@ -67,8 +77,8 @@ function toDep(opts: PackageInput): Dep {
   const ecosystem = toEcosystem(opts.ecosystem);
   const version = opts.version.replace(/^v/, "");
   const name = ecosystem === "PyPI" ? normalizePy(opts.name) : opts.name;
-  if (!isSafe(name) || !isSafe(version) || !/^\d/.test(version))
-    throw new Error("name must be a package name and version an exact version such as 1.2.3, not a range.");
+  if (!isSafeName(name, ecosystem) || !isSafeVersion(version))
+    throw new InputError("name must be a package name and version an exact version such as 1.2.3, not a range.");
   return { ecosystem, name, version, direct: true, lockfile: "" };
 }
 
@@ -83,7 +93,7 @@ export async function checkPackages(packages: PackageInput[]): Promise<Report> {
     try {
       scan.deps.push(toDep(p));
     } catch (e) {
-      scan.unchecked.push({ item: `${p.name}@${p.version}`, reason: (e as Error).message });
+      scan.unchecked.push({ item: safeLabel(`${p.name}@${p.version}`), reason: (e as Error).message });
     }
   }
   const report = await buildReport(scan);
@@ -91,17 +101,15 @@ export async function checkPackages(packages: PackageInput[]): Promise<Report> {
 }
 
 export function summarize(r: Report): string {
-  const noProject = r.coverage.unchecked.length === 1 && r.coverage.unchecked[0]!.item === "project";
+  const noProject = r.verdict === "unknown" && r.coverage.unchecked.length === 1 && r.coverage.unchecked[0]!.reason === NO_LOCKFILE;
   if (noProject) return "";
   const counts = Object.entries(r.coverage.by_ecosystem).map(([e, n]) => `${e} ${n}`).join(", ");
   if (r.verdict === "no") return `keep-me-secure: no known issues in ${r.coverage.scanned} packages (${counts}).`;
-  if (r.verdict === "unknown") {
-    const why = r.coverage.unchecked.slice(0, 5).map((u) => `- ${u.item}: ${u.reason}`);
-    return ["keep-me-secure: no issues found, but the check is incomplete.", ...why].join("\n");
-  }
+  if (r.verdict === "unknown")
+    return `keep-me-secure: no issues found, but ${r.coverage.unchecked.length} item(s) couldn't be checked. Call the check_project tool for details.`;
   const lines = r.findings.slice(0, 10).map((f) => {
-    const fix = f.fixed_in ? ` -> ${f.fixed_in}` : "";
-    return `- [${f.urgency}] ${f.package} ${f.installed}${fix} (${f.severity}, ${f.lockfile || "direct check"})`;
+    const fix = /^[\d.]+$/.test(f.fixed_in ?? "") ? ` -> ${f.fixed_in}` : "";
+    return `- [${f.urgency}] ${f.package}${fix} (${f.malicious ? "MALICIOUS" : f.severity}, ${f.ecosystem})`;
   });
   const more = r.findings.length > 10 ? [`- and ${r.findings.length - 10} more`] : [];
   return [

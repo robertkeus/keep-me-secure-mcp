@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && node \"${CLAUDE_PLUGIN_ROOT}/server.mjs\" check 2>/dev/null || echo \"keep-me-secure: security check skipped. It needs Node.js 22 or newer.\"",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && node \"${CLAUDE_PLUGIN_ROOT}/server.mjs\" check 2>/dev/null || echo \"keep-me-secure: security check skipped. Is Node.js 22 or newer installed?\"",
             "timeout": 60
           }
         ]
