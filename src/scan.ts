@@ -18,6 +18,9 @@ import type { Ecosystem, Parsed, Scan } from "./types.ts";
 
 const SKIP_DIRS = new Set(["node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", ".gradle", "__pycache__"]);
 const MAX_DEPTH = 5;
+const MAX_IGNORED_LISTED = 20;
+/** Lockfiles here are usually samples that never ship. Name one with `path` to check it anyway. */
+const TEST_DIRS = new Set(["test", "tests", "__tests__", "spec", "fixtures", "__fixtures__", "testdata", "example", "examples", "samples"]);
 
 const LOCKFILES: Record<string, { ecosystem: Ecosystem; parse: (lock: string, manifest?: string) => Parsed; manifest?: string }> = {
   "composer.lock": { ecosystem: "Packagist", parse: parseComposerLock, manifest: "composer.json" },
@@ -60,16 +63,24 @@ async function walk(root: string, depth = 0): Promise<string[]> {
   return [...files, ...nested.flat()];
 }
 
+const inTestDir = (rel: string) => rel.split("/").slice(0, -1).some((dir) => TEST_DIRS.has(dir));
+const baseName = (file: string) => file.slice(file.lastIndexOf("/") + 1);
+
 const covers = (lockDir: string, dir: string) => dir === lockDir || dir.startsWith(lockDir + "/");
 
 export async function scanProject(root: string, only?: Ecosystem): Promise<Scan> {
   const scan: Scan = { deps: [], private: [], unchecked: [] };
-  const files = await walk(root);
+  const all = await walk(root);
+  const files = all.filter((f) => !inTestDir(relative(root, f)));
+  scan.ignored = all
+    .filter((f) => inTestDir(relative(root, f)) && (LOCKFILES[baseName(f)] || isRequirements(baseName(f))))
+    .map((f) => relative(root, f))
+    .slice(0, MAX_IGNORED_LISTED);
   const names = new Set(files);
   const locked: { dir: string; ecosystem: Ecosystem }[] = [];
 
   for (const file of files) {
-    const base = file.slice(file.lastIndexOf("/") + 1);
+    const base = baseName(file);
     const rel = relative(root, file);
     const spec = isRequirements(base)
       ? { ecosystem: "PyPI" as const, parse: parseRequirements, manifest: undefined }
@@ -95,7 +106,7 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
   }
 
   for (const file of files) {
-    const base = file.slice(file.lastIndexOf("/") + 1);
+    const base = baseName(file);
     const ecosystem = base.endsWith(".csproj") ? "NuGet" : MANIFESTS[base];
     if (!ecosystem || (only && ecosystem !== only)) continue;
     const dir = dirname(file);

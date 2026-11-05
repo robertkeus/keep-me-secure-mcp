@@ -113,6 +113,8 @@ Add `https://mcp.keepmesecure.dev/mcp` as a remote MCP server in your agent. No 
 | Java, Kotlin | `gradle.lockfile` |
 | .NET | `packages.lock.json` |
 
+Lockfiles in test and example folders (such as `test`, `spec`, `fixtures` and `examples`) are skipped, because they usually don't ship. They're listed in `coverage.ignored`, and `check_project` still checks one if you name it with `path`.
+
 Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
 ## Tools
