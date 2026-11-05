@@ -1,0 +1,14 @@
+{
+  "name": "keep-me-secure-mcp",
+  "description": "Security checks for your packages, from your coding agent.",
+  "owner": {
+    "name": "Robert Keus"
+  },
+  "plugins": [
+    {
+      "name": "keep-me-secure",
+      "source": "./plugin",
+      "description": "Checks your packages for known security issues every day when you start coding."
+    }
+  ]
+}

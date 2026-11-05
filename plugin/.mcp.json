@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "keep-me-secure": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server.mjs"]
+    }
+  }
+}
