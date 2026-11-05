@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +39,20 @@ test("a polyglot project scans every ecosystem", async () => {
   const s = await scanProject(dir("stack"));
   assert.deepEqual([...new Set(s.deps.map((d) => d.ecosystem))].sort(), ["Go", "Maven", "NuGet", "RubyGems", "crates.io"]);
   assert.deepEqual(s.unchecked, []);
+});
+
+test("lockfiles in test folders are listed, not checked, unless they're the root", async () => {
+  const root = mkdtempSync(join(tmpdir(), "kms-"));
+  const lock = JSON.stringify({ lockfileVersion: 3, packages: { "": {}, "node_modules/a": { version: "1.0.0" } } });
+  mkdirSync(join(root, "test", "app"), { recursive: true });
+  writeFileSync(join(root, "package-lock.json"), lock);
+  writeFileSync(join(root, "test", "app", "package-lock.json"), lock);
+  writeFileSync(join(root, "test", "app", "package.json"), "{}");
+  const s = await scanProject(root);
+  assert.deepEqual(s.deps.map((d) => d.lockfile), ["package-lock.json"]);
+  assert.deepEqual(s.ignored, ["test/app/package-lock.json"]);
+  assert.deepEqual(s.unchecked, []);
+  assert.equal((await scanProject(join(root, "test", "app"))).deps.length, 1);
 });
 
 test("ecosystem filter", async () => {

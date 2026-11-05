@@ -1,6 +1,6 @@
 {
   "name": "keep-me-secure-mcp",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "MCP server that tells your coding agent whether your installed packages need patching",
   "license": "MIT",
   "type": "module",

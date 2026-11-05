@@ -64,7 +64,7 @@ export function createServer({ hosted = false } = {}): McpServer {
         "Does not cover language runtimes, OS packages or Docker base images.",
       inputSchema: {
         ecosystem: z.string().optional().describe("Only to limit the check: php, npm, python, go, rust, ruby, java or dotnet. Omit for a full check."),
-        path: z.string().optional().describe("Subfolder relative to the project root. Omit to scan the whole project."),
+        path: z.string().optional().describe("Subfolder relative to the project root. Omit to scan the whole project. Test and example folders are skipped unless named here."),
         refresh: z.boolean().optional().describe("Ignore today's cached result"),
       },
       annotations,

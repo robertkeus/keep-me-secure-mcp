@@ -24,6 +24,8 @@ export interface Scan {
   deps: Dep[];
   private: string[];
   unchecked: Unchecked[];
+  /** Lockfiles left out because they sit in test or example folders. */
+  ignored?: string[];
 }
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";

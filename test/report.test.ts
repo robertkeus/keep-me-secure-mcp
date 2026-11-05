@@ -86,6 +86,29 @@ test("target is the highest fix across advisories", async () => {
   assert.equal((await buildReport(scan())).findings[0]!.fixed_in, "1.10.0");
 });
 
+test("one package version in two lockfiles is one finding", async () => {
+  serve([vuln()]);
+  const deps = [dep(), dep({ lockfile: "web/pnpm-lock.yaml", direct: false })];
+  const r = await buildReport(scan({ deps }));
+  assert.equal(r.findings.length, 1);
+  assert.equal(r.findings[0]!.direct, true);
+  assert.deepEqual(r.findings[0]!.also_in, [{ lockfile: "web/pnpm-lock.yaml", command: "pnpm update lodash" }]);
+});
+
+test("lists the worst advisories, with exploited ones first", async () => {
+  const low = (n: number) =>
+    vuln({ id: `GHSA-${n}`, aliases: [`CVE-2020-${n}`], database_specific: { severity: "LOW" } });
+  const vulns = [1, 2, 3, 4, 5, 6, 7].map(low);
+  vulns.push(vuln({ id: "GHSA-8", aliases: ["CVE-2020-8"], database_specific: { severity: "MODERATE" } }));
+  serve(vulns, ["CVE-2020-7"]);
+  const f = (await buildReport(scan())).findings[0]!;
+  assert.equal(f.advisories_total, 8);
+  assert.equal(f.advisories.length, 5);
+  assert.equal(f.advisories[0]!.id, "GHSA-7");
+  assert.equal(f.advisories[1]!.id, "GHSA-8");
+  assert.equal(f.exploited, true);
+});
+
 test("OSV failure gives unknown, not no", async () => {
   mock.method(globalThis, "fetch", async () => json({}, 503));
   const r = await buildReport(scan());
