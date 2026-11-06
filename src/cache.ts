@@ -8,7 +8,7 @@ interface Store {
 }
 
 /** Keys can hold advisory ids from a third party, so they must never choose a path. */
-const safeKey = (key: string) => key.replace(/[^A-Za-z0-9._-]/g, "_");
+const safeKey = (key: string) => key.replace(/[^A-Za-z0-9.-]/g, (c) => `_${c.codePointAt(0)!.toString(16)}_`);
 
 const file = (key: string) =>
   join(process.env.KMS_CACHE_DIR ?? join(homedir(), ".cache", "keep-me-secure"), `${safeKey(key)}.json`);

@@ -16,6 +16,7 @@ import {
 } from "./runtimes.ts";
 import { isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
 import type { Dep, Ecosystem, Scan } from "./types.ts";
+import { findOldPackages, installProtection } from "./upkeep.ts";
 
 /** A message written here, safe to show. Anything else may quote file paths, so it's never passed on. */
 export class InputError extends Error {}
@@ -70,7 +71,9 @@ function projectRoot(path = "."): string {
   return root;
 }
 
-export async function checkProject(opts: { path?: string; ecosystem?: string; refresh?: boolean } = {}): Promise<Report> {
+export async function checkProject(
+  opts: { path?: string; ecosystem?: string; refresh?: boolean; packageAges?: boolean } = {},
+): Promise<Report> {
   const scan = await scanProject(projectRoot(opts.path), opts.ecosystem ? toEcosystem(opts.ecosystem) : undefined);
   const key = `report-${createHash("sha256").update(JSON.stringify(scan)).digest("hex").slice(0, 32)}`;
   const cached = await readCache<{ date: string; report: Report }>(key);
@@ -79,6 +82,8 @@ export async function checkProject(opts: { path?: string; ecosystem?: string; re
     ...report,
     platforms: { detected: scan.platforms ?? [], ...forPlatforms(await loadIncidents(), scan.platforms ?? []) },
     runtimes: await checkRuntimes(scan.runtimes ?? [], await loadRuntimeAdvisories()),
+    install_protection: installProtection(scan.protection ?? []),
+    old_packages: opts.packageAges === false ? undefined : await findOldPackages(scan.deps),
   });
   if (!opts.refresh && cached?.date === today()) return withPlatforms(cached.report);
   const report = await buildReport(scan);
@@ -139,11 +144,21 @@ export function summarize(r: Report): string {
       const known = f.exploited ? " It's being exploited." : "";
       return `keep-me-secure: ${runtimeName(f.runtime)} ${f.declared} has a ${f.severity} security flaw.${known} ${fix}`;
     });
+  const noFix = new Set(
+    (r.runtimes?.findings ?? []).filter((f) => f.status === "affected" && !f.fixed_in).map((f) => f.declared),
+  );
+  const support = (r.runtimes?.declared ?? []).flatMap((d) => {
+    if (!d.support || d.support.status === "on_track" || noFix.has(d.declared)) return [];
+    const name = `${runtimeName(d.runtime)} ${d.support.line}`;
+    return d.support.status === "end_of_life"
+      ? `keep-me-secure: ${name} reached end of life on ${d.support.security_until}. Move to a supported version.`
+      : `keep-me-secure: ${name} stops getting security fixes on ${d.support.security_until}.`;
+  });
   const recent = (r.platforms?.incidents ?? []).filter((i) => isRecent(i));
   const platforms = recent.map(
     (i) => `keep-me-secure: ${i.platform} reported a security incident on ${i.date}. Call the check_platform tool for what to do.`,
   );
-  return [packages, ...new Set(runtimes), ...platforms].filter(Boolean).join("\n");
+  return [packages, ...new Set(runtimes), ...new Set(support), ...platforms].filter(Boolean).join("\n");
 }
 
 function summarizePackages(r: Report): string {

@@ -7,7 +7,7 @@
   <img alt="A terminal. Someone asks: Is my stack secure? It scans 111 packages across PHP, npm, Go and Java, then answers no: 18 packages need patching, starting with log4j-core and spring-beans." src="assets/hero-light.svg" width="880">
 </picture>
 
-[Website](https://keepmesecure.dev) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · MIT license
+[Website](https://keepmesecure.dev) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · MIT license
 
 It's a free, open source MCP server. It checks every package in your lockfiles against public security advisories, including the ones you didn't install directly.
 
@@ -131,6 +131,14 @@ Flaws in the runtime itself don't appear in your lockfile. In October 2026, Node
 - Declared versions may not be what runs on your servers, so check those too. `check_runtime` takes an exact version, for example from `php --version`.
 - Advisories are a curated list from each project's own security pages, updated through a [daily feed](https://keepmesecure.dev/runtimes.json). They're reported separately and don't change the package verdict.
 
+## Staying ahead
+
+These don't change the yes or no, but they show up in `check_project`.
+
+- **Support dates:** for each declared Node.js or PHP version, it shows when active support and security fixes end, and whether it's an LTS line. End of life and ending within 180 days also appear in the session-start message. Dates come from [endoflife.date](https://endoflife.date).
+- **Release age:** it checks whether npm, pnpm, Yarn and Composer wait before installing new releases, and shows the setting to add. Waiting about 2 days blocks many supply chain attacks, but it also delays security fixes, so results with urgency `now` show how to let that one fix through.
+- **Old packages:** it flags direct dependencies that are deprecated, abandoned, or have had no release for two years. Old doesn't mean unsafe, so this is only a prompt to look. It uses [deps.dev](https://deps.dev) and [Packagist](https://packagist.org). The session-start hook skips it, but it runs whenever your agent calls `check_project`, which it may do when a session starts.
+
 ## Platform breaches
 
 Packages aren't the only risk. In October 2026 alone, several developer and AI platforms disclosed incidents where customer secrets may have been exposed. If your project uses one, Keep Me Secure tells you what happened and what to do, with a link to the source.
@@ -190,9 +198,10 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 
 The full statement is at [keepmesecure.dev/privacy](https://keepmesecure.dev/privacy). This project is provided as is and used at your own risk, as set out in the [terms](https://keepmesecure.dev/terms).
 
+- Names of direct dependencies are sent to [deps.dev](https://deps.dev) and Packagist whenever your agent calls `check_project`, which it may do when a session starts.
 - Names and versions of public packages are sent to [OSV.dev](https://osv.dev). When something is affected, CVE ids go to [FIRST EPSS](https://www.first.org/epss/). The CISA KEV feed is downloaded.
 - Packages from private registries, git or local paths are not sent anywhere. They're listed in `coverage.private` and aren't checked.
-- Go, Java, .NET and most pnpm lockfiles don't show which registry a package came from, so private package names in those can be sent to OSV. Local `replace` paths in `go.mod` are the exception.
+- Go, Java, .NET, `requirements.txt`, most pnpm and some Yarn lockfiles don't show which registry a package came from, so private package names in those can be sent to OSV, deps.dev and Packagist. Local `replace` paths in `go.mod` are the exception.
 - Results are cached per day, in `~/.cache/keep-me-secure` for the plugin and the `kms-cache` volume for Docker. A lockfile change triggers a new check.
 
 ## Security

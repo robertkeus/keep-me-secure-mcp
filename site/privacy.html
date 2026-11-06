@@ -44,9 +44,10 @@
 <h2 id="local">Claude Code plugin and Docker</h2>
 <p class="dim">These run on your own machine. Your lockfiles, code and file paths stay there, and nothing reaches our server except the two list downloads below.</p>
 <ul class="plain dim">
-<li>Names and versions of public packages are sent to <a href="https://osv.dev">OSV.dev</a> to look up advisories. Packages from private registries, git or local paths are left out where the lockfile shows that. Go, Java, .NET and most pnpm lockfiles don't show it, so private package names in those can be sent.</li>
+<li>Names and versions of public packages are sent to <a href="https://osv.dev">OSV.dev</a> to look up advisories. Packages from private registries, git or local paths are left out where the lockfile shows that. Go, Java, .NET, requirements.txt, most pnpm and some Yarn lockfiles don't show it, so private package names in those can be sent, including in the check below.</li>
 <li>When something is affected, CVE numbers are sent to <a href="https://www.first.org/epss/">FIRST</a>.</li>
-<li>Once a day it downloads public lists from <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">CISA</a> and from this site. These downloads send nothing about your project, but like any web request they show your IP address.</li>
+<li>When your agent runs a full check, which it may do when a session starts, the names of your direct dependencies are sent to <a href="https://deps.dev">deps.dev</a>, run by Google, and <a href="https://packagist.org">Packagist</a>, to see if they're still maintained.</li>
+<li>Once a day it downloads public lists from <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">CISA</a>, <a href="https://endoflife.date">endoflife.date</a> and this site. These downloads send nothing about your project, but like any web request they show your IP address.</li>
 <li>Results are saved on your machine for a day, in a cache folder or Docker volume, and not in your project.</li>
 </ul>
 </section>
@@ -73,7 +74,7 @@
 <ul class="plain dim">
 <li><a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> hosts this site and the hosted URL. It also adds network error reporting.</li>
 <li><a href="https://osv.dev">OSV.dev</a>, run by Google, answers advisory lookups.</li>
-<li><a href="https://www.first.org/epss/">FIRST</a> and <a href="https://www.cisa.gov/">CISA</a> provide risk data.</li>
+<li><a href="https://www.first.org/epss/">FIRST</a> and <a href="https://www.cisa.gov/">CISA</a> provide risk data, <a href="https://endoflife.date">endoflife.date</a> provides support dates, and <a href="https://deps.dev">deps.dev</a> and <a href="https://packagist.org">Packagist</a> provide package release dates.</li>
 <li><a href="https://github.com/robertkeus/keep-me-secure-mcp">GitHub</a> hosts the code and the Docker image, and <a href="https://registry.modelcontextprotocol.io">the MCP Registry</a> lists it.</li>
 </ul>
 </section>

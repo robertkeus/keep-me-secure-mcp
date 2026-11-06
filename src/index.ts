@@ -9,7 +9,7 @@ const command = process.argv[2];
 
 if (command === "check") {
   try {
-    const summary = summarize(await checkProject());
+    const summary = summarize(await checkProject({ packageAges: false }));
     if (summary) console.log(summary);
   } catch {
     console.log("keep-me-secure: the check could not run in this project.");

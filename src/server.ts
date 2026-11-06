@@ -12,6 +12,7 @@ const INSTRUCTIONS =
   "Tell the user what was covered and what was not. " +
   "platforms and runtimes in the result list known issues with the platforms and Node.js or PHP versions the project uses, separately from the package verdict. " +
   "A runtime with status unverified can't be confirmed from the repo, so ask the user to check the version really running. " +
+  "The result also covers support dates, install_protection and old_packages: mention any that need action, and never present an old package as a vulnerability. " +
   "Call check_platform when the user asks about a hosting or AI platform, or a breach. " +
   "Results are cached per day, so repeat calls are cheap. " +
   "Use check_package before adding a dependency or when asked about a specific package. " +

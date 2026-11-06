@@ -1,4 +1,5 @@
 import type { DeclaredRuntime } from "./runtimes.ts";
+import type { ManagerProtection } from "./upkeep.ts";
 
 export type Ecosystem = "Packagist" | "npm" | "PyPI" | "Go" | "crates.io" | "RubyGems" | "Maven" | "NuGet";
 
@@ -32,6 +33,8 @@ export interface Scan {
   platforms?: string[];
   /** Runtime versions the project declares. */
   runtimes?: DeclaredRuntime[];
+  /** Whether each package manager in use waits before installing new releases. */
+  protection?: ManagerProtection[];
 }
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";

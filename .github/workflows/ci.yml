@@ -15,7 +15,7 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npm ci --ignore-scripts
       - run: npm run build:plugin && git diff --exit-code plugin/server.mjs
-      - run: npm run build:site && git diff --exit-code site/incidents.json site/incidents.html site/runtimes.json
+      - run: npm run build:site && git diff --exit-code site/incidents.json site/incidents.html site/runtimes.json site/changelog.html
       - run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker"
       - run: docker compose build test mcp
       - run: docker compose run --rm test

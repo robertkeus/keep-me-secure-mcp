@@ -1,3 +1,4 @@
+import { readCache, today, writeCache } from "./cache.ts";
 import { knownExploited } from "./enrich.ts";
 import { compareVersions } from "./osv.ts";
 import { isDate, isHttps, isPlainText, loadList } from "./platforms.ts";
@@ -41,13 +42,28 @@ export interface RuntimeFinding {
   source: string;
 }
 
+export interface Support {
+  line: string;
+  /** on_track, ending_soon (within SOON_DAYS) or end_of_life. */
+  status: "on_track" | "ending_soon" | "end_of_life";
+  /** Node.js only: whether this line is a long-term support release. */
+  lts: boolean | null;
+  active_until: string | null;
+  security_until: string | null;
+}
+
 export interface RuntimeReport {
-  declared: { runtime: Runtime; declared: string; file: string }[];
+  declared: { runtime: Runtime; declared: string; file: string; support: Support | null }[];
   findings: RuntimeFinding[];
   note: string;
 }
 
 const FEED_URL = "https://keepmesecure.dev/runtimes.json";
+const SUPPORT_URLS: Record<Runtime, string> = {
+  node: "https://endoflife.date/api/nodejs.json",
+  php: "https://endoflife.date/api/php.json",
+};
+const SOON_DAYS = 180;
 const NAMES: Record<Runtime, string> = { node: "Node.js", php: "PHP" };
 const NOTE =
   "This reads the versions a repo declares, which may not be what's running on your servers, so check those too. " +
@@ -158,13 +174,62 @@ function assess(advisory: RuntimeAdvisory, d: DeclaredRuntime, kev: Set<string> 
   };
 }
 
+interface Cycle {
+  cycle: string;
+  lts: boolean;
+  active: string | null;
+  eol: string | null;
+}
+
+/** Support dates are a nice extra, so a failed download only means they're left out. */
+async function loadCycles(runtime: Runtime): Promise<Cycle[]> {
+  const key = `support-${runtime}`;
+  const cached = await readCache<{ date: string; cycles: Cycle[] }>(key);
+  if (cached?.date === today() && Array.isArray(cached.cycles)) return cached.cycles;
+  try {
+    const res = await fetch(SUPPORT_URLS[runtime], { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("not a list");
+    const dateOf = (value: unknown) => (isDate(value) ? (value as string) : null);
+    const cycles = data
+      .filter((c) => typeof c?.cycle === "string" && /^\d+(\.\d+)?$/.test(c.cycle))
+      .slice(0, 100)
+      .map((c) => ({ cycle: c.cycle, lts: isDate(c.lts) && c.lts <= today(), active: dateOf(c.support), eol: dateOf(c.eol) }));
+    await writeCache(key, { date: today(), cycles });
+    return cycles;
+  } catch {
+    return [];
+  }
+}
+
+function supportOf(d: DeclaredRuntime, cycles: Cycle[]): Support | null {
+  const cycle = cycles.find((c) => c.cycle === d.line);
+  if (!cycle?.eol) return null;
+  const daysLeft = (Date.parse(cycle.eol) - Date.now()) / (24 * 60 * 60 * 1000);
+  return {
+    line: cycle.cycle,
+    status: daysLeft < 0 ? "end_of_life" : daysLeft <= SOON_DAYS ? "ending_soon" : "on_track",
+    lts: d.runtime === "node" ? cycle.lts : null,
+    active_until: cycle.active,
+    security_until: cycle.eol,
+  };
+}
+
 export async function checkRuntimes(declared: DeclaredRuntime[], advisories: RuntimeAdvisory[]): Promise<RuntimeReport> {
   const kev = declared.length ? await knownExploited() : null;
+  const runtimes = [...new Set(declared.map((d) => d.runtime))];
+  const cycles = new Map(await Promise.all(runtimes.map(async (r) => [r, await loadCycles(r)] as const)));
   const findings = declared.flatMap((d) =>
     advisories.filter((a) => a.runtime === d.runtime).flatMap((a) => assess(a, d, kev) ?? []),
   );
   return {
-    declared: declared.map(({ runtime, declared: version, file }) => ({ runtime, declared: version, file })),
+    declared: declared.map((d) => ({
+      runtime: d.runtime,
+      declared: d.declared,
+      file: d.file,
+      support: supportOf(d, cycles.get(d.runtime) ?? []),
+    })),
     findings: findings.sort((a, b) => Number(a.status === "unverified") - Number(b.status === "unverified")),
     note: NOTE,
   };
