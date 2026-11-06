@@ -65,13 +65,17 @@ const SETTINGS: Record<Manager, { setting: string; urgent_fix: string }> = {
   },
 };
 
-async function read(file: string): Promise<string> {
+/** Regular files only, so a link to a device can't hang the check. */
+export async function readSmallFile(file: string): Promise<string> {
   try {
-    return (await stat(file)).size > MAX_CONFIG_BYTES ? "" : await readFile(file, "utf8");
+    const info = await stat(file);
+    return info.isFile() && info.size <= MAX_CONFIG_BYTES ? await readFile(file, "utf8") : "";
   } catch {
     return "";
   }
 }
+
+const read = readSmallFile;
 
 const MINUTES: Record<string, number> = { m: 1, minute: 1, h: 60, hour: 60, d: 1440, day: 1440, w: 10080, week: 10080 };
 const MIN_WAIT_MINUTES = 1440;

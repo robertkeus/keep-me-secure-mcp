@@ -23,6 +23,7 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertke
 - `check_package`: checks one exact package version
 - `check_platform`: lists known security incidents at hosting and AI platforms, with what to do
 - `check_runtime`: checks a Node.js or PHP version against known flaws
+- `suggest_dependabot` (local): returns a Dependabot config with a cooldown that doesn't delay security updates
 
 ## Coverage
 
@@ -30,7 +31,8 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertke
 - Data: OSV.dev, the CISA Known Exploited Vulnerabilities list and FIRST EPSS
 - Platforms: a curated list of known incidents, at https://keepmesecure.dev/incidents and as JSON at https://keepmesecure.dev/incidents.json. It isn't complete
 - Runtimes: Node.js and PHP versions declared in the project, against a curated list at https://keepmesecure.dev/runtimes.json
-- Not covered: your servers, OS packages, Docker images and your own code
+- Dockerfiles: base image, end-of-life OS, floating tags, root user, and installed OS packages. Exact versions need an image scanner
+- Not covered: built images, your servers, software on your computer and your own code
 - Test and example folders are skipped by default, and listed in the result
 
 ## When it runs

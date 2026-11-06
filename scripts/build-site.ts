@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { SYSTEM_ADVISORIES } from "../src/docker.ts";
 import { INCIDENTS } from "../src/platforms.ts";
 import { RUNTIME_ADVISORIES } from "../src/runtimes.ts";
 
@@ -100,4 +101,5 @@ ${releases}
 writeFileSync("site/changelog.html", changelog);
 writeFileSync("site/incidents.json", JSON.stringify(sorted, null, 2) + "\n");
 writeFileSync("site/incidents.html", page);
+writeFileSync("site/system-advisories.json", JSON.stringify(SYSTEM_ADVISORIES, null, 2) + "\n");
 writeFileSync("site/runtimes.json", JSON.stringify(RUNTIME_ADVISORIES, null, 2) + "\n");

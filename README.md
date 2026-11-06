@@ -139,6 +139,16 @@ These don't change the yes or no, but they show up in `check_project`.
 - **Release age:** it checks whether npm, pnpm, Yarn and Composer wait before installing new releases, and shows the setting to add. Waiting about 2 days blocks many supply chain attacks, but it also delays security fixes, so results with urgency `now` show how to let that one fix through.
 - **Old packages:** it flags direct dependencies that are deprecated, abandoned, or have had no release for two years. Old doesn't mean unsafe, so this is only a prompt to look. It uses [deps.dev](https://deps.dev) and [Packagist](https://packagist.org). The session-start hook skips it, but it runs whenever your agent calls `check_project`, which it may do when a session starts.
 
+## Dockerfiles
+
+It reads each Dockerfile or Containerfile for the base image and its OS, end-of-life OS versions, floating tags such as `latest`, whether the image runs as root, and OS packages installed with `apk` or `apt`.
+
+A Dockerfile doesn't show exact package versions or what's really running, so anything it finds is `unverified`. To be sure, scan the built image with a tool such as [Trivy](https://trivy.dev) or [Grype](https://github.com/anchore/grype). System advisories are a [curated list](https://keepmesecure.dev/system-advisories.json), starting with the OpenSSH password bypass on Alpine.
+
+## Dependabot
+
+Ask your agent to set it up. `suggest_dependabot` returns a `.github/dependabot.yml` for your package managers and Dockerfiles, and your agent writes it with your OK. It uses a 2 day cooldown, which makes routine updates wait. GitHub doesn't apply cooldowns to security updates, so fixes aren't delayed.
+
 ## Platform breaches
 
 Packages aren't the only risk. In October 2026 alone, several developer and AI platforms disclosed incidents where customer secrets may have been exposed. If your project uses one, Keep Me Secure tells you what happened and what to do, with a link to the source.
@@ -159,6 +169,7 @@ To add an incident, open a pull request that edits `src/platforms.ts` and links 
 | `check_package` | Is this exact version safe? | `ecosystem`, `name`, `version` |
 | `check_platform` | Was this platform breached? | `name`, optional. Omit it to list all |
 | `check_runtime` | Is this Node.js or PHP version safe? | `runtime`, `version` |
+| `suggest_dependabot` (local) | Can you set up Dependabot? | None |
 
 Example result, shortened:
 
@@ -215,7 +226,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Limits
 
-- It covers third-party packages, plus curated lists of runtime flaws and platform incidents. It doesn't cover your servers, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
+- It covers third-party packages, plus curated lists of runtime flaws, platform incidents and OS package flaws in Dockerfiles. It doesn't scan built images, your servers, software on your computer, or your own code. A `no` doesn't mean your whole stack is secure.
 - A `no` means no known issue at `checked_at`. OSV can lag behind an incident by a few hours.
 - It doesn't check whether your code actually reaches the vulnerable function.
 - For a transitive dependency, the fix may have to come from upgrading its parent package.

@@ -22,6 +22,7 @@ export function parseComposerLock(lock: string, manifest?: string): Parsed {
   const data = JSON.parse(lock);
   const m = manifest ? JSON.parse(manifest) : {};
   const direct = new Set([...Object.keys(m.require ?? {}), ...Object.keys(m["require-dev"] ?? {})]);
+  const devOnly = new Set((data["packages-dev"] ?? []).map((p: Json) => p?.name).filter((n: string) => !m.require?.[n]));
   for (const p of [...(data.packages ?? []), ...(data["packages-dev"] ?? [])]) {
     if (typeof p?.name !== "string") {
       out.unchecked.push({ item: "composer.lock", reason: "entry with an invalid package name" });
@@ -30,7 +31,8 @@ export function parseComposerLock(lock: string, manifest?: string): Parsed {
     if (!String(p["notification-url"] ?? "").includes("packagist.org")) out.private.push(p.name);
     else {
       const version = String(p.version).replace(/^v/, "");
-      if (isVersion(version)) out.deps.push({ name: p.name, version, direct: direct.has(p.name) });
+      if (isVersion(version))
+        out.deps.push({ name: p.name, version, direct: direct.has(p.name), ...(devOnly.has(p.name) ? { dev: true } : {}) });
       else out.unchecked.push({ item: `${p.name}@${p.version}`, reason: "branch version, no release to match" });
     }
   }
@@ -52,7 +54,7 @@ export function parsePackageLock(lock: string): Parsed {
     const name = p.name ?? installedAs;
     if (!onNpm(p.resolved)) out.private.push(name);
     else if (isVersion(p.version))
-      out.deps.push({ name, version: p.version, direct: at === 0 && direct.has(installedAs) });
+      out.deps.push({ name, version: p.version, direct: at === 0 && direct.has(installedAs), ...(p.dev === true && !root.dependencies?.[installedAs] ? { dev: true } : {}) });
     else out.unchecked.push({ item: name, reason: BAD_VERSION });
   }
   return out;

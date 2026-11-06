@@ -228,5 +228,5 @@ export const forPlatforms = (incidents: Incident[], names: string[]): PlatformRe
 
 export const allIncidents = (incidents: Incident[]): PlatformReport => ({ incidents, note: NOTE });
 
-export const isRecent = (incident: Incident, now = Date.now()) =>
+export const isRecent = (incident: { date: string }, now = Date.now()) =>
   now - Date.parse(incident.date) < HOOK_DAYS * 24 * 60 * 60 * 1000;

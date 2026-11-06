@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.0 (2026-11-06)
+
+- Reads Dockerfiles: base image, end-of-life OS versions, floating tags, running as root, and OS packages installed with apk or apt
+- Warns about flaws in OS packages, starting with the OpenSSH password bypass on Alpine, which it reports as unverified because a Dockerfile shows no exact version
+- Adds the `suggest_dependabot` tool, with a 2 day cooldown that doesn't delay security updates
+- Each finding now explains what it means for your computer and for production
+
 ## 1.6.0 (2026-11-06)
 
 - Shows when your Node.js or PHP version stops getting support, and whether it's an LTS line

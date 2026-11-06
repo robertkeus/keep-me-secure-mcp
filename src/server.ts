@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { checkPackage, checkPackages, checkPlatform, checkProject, checkRuntime, InputError } from "./check.ts";
+import { checkPackage, checkPackages, checkPlatform, checkProject, checkRuntime, InputError, suggestDependabot } from "./check.ts";
+import type { DependabotReport } from "./dependabot.ts";
 import type { PlatformReport } from "./platforms.ts";
 import type { Report } from "./report.ts";
 import type { RuntimeReport } from "./runtimes.ts";
@@ -12,7 +13,9 @@ const INSTRUCTIONS =
   "Tell the user what was covered and what was not. " +
   "platforms and runtimes in the result list known issues with the platforms and Node.js or PHP versions the project uses, separately from the package verdict. " +
   "A runtime with status unverified can't be confirmed from the repo, so ask the user to check the version really running. " +
-  "The result also covers support dates, install_protection and old_packages: mention any that need action, and never present an old package as a vulnerability. " +
+  "The result also covers support dates, install_protection, old_packages, containers and dependabot: mention any that need action, and never present an old package as a vulnerability. " +
+  "Each finding has an impact field: use it to explain what the issue means for the user's computer and for production. " +
+  "If dependabot isn't set up, offer suggest_dependabot. " +
   "Call check_platform when the user asks about a hosting or AI platform, or a breach. " +
   "Results are cached per day, so repeat calls are cheap. " +
   "Use check_package before adding a dependency or when asked about a specific package. " +
@@ -26,7 +29,7 @@ const HOSTED_INSTRUCTIONS =
   "Call check_platform for any hosting or AI platform the user names, or to list recent platform breaches. " +
   "Call check_runtime with the exact Node.js or PHP version from the project or the running system. Never run an upgrade without the user's approval.";
 
-const tool = (run: () => Promise<Report | PlatformReport | RuntimeReport>) =>
+const tool = (run: () => Promise<Report | PlatformReport | RuntimeReport | DependabotReport>) =>
   run().then(
     (report) => ({ content: [{ type: "text" as const, text: JSON.stringify(report, null, 2) }] }),
     (e: Error) => ({
@@ -72,7 +75,7 @@ export function createServer({ hosted = false } = {}): McpServer {
         "Checks every installed package, including transitive ones, in all lockfiles in this project against public security advisories. " +
         "verdict is yes, no or unknown; unknown means the check was incomplete, so never report it as safe. " +
         "Supports PHP, JavaScript, Python, Go, Rust, Ruby, Java (Gradle lockfiles) and .NET. " +
-        "Also reports known issues with the platforms and the Node.js or PHP versions the project uses. Does not cover OS packages, Docker base images or your own code.",
+        "Also reports known issues with the platforms and the Node.js or PHP versions the project uses. Also reads Dockerfiles. Does not scan built images, servers or your own code.",
       inputSchema: {
         ecosystem: z.string().optional().describe("Only to limit the check: php, npm, python, go, rust, ruby, java or dotnet. Omit for a full check."),
         path: z.string().optional().describe("Subfolder relative to the project root. Omit to scan the whole project. Test and example folders are skipped unless named here."),
@@ -96,6 +99,20 @@ export function createServer({ hosted = false } = {}): McpServer {
     },
     ({ name }) => tool(() => checkPlatform(name, { hosted })),
   );
+
+  if (!hosted)
+    server.registerTool(
+      "suggest_dependabot",
+      {
+        title: "Set up Dependabot",
+        description:
+          "Returns a suggested .github/dependabot.yml for this project's package managers and Dockerfiles, with a 2 day cooldown that doesn't delay security updates. " +
+          "It changes nothing: show it to the user, and write the file only with their OK.",
+        inputSchema: {},
+        annotations,
+      },
+      () => tool(() => suggestDependabot()),
+    );
 
   server.registerTool(
     "check_runtime",
