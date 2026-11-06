@@ -16,6 +16,10 @@ Run locally with Docker, in your project:
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" ghcr.io/robertkeus/keep-me-secure-mcp:latest init
 ```
 
+## Compared with Dependabot
+
+Use both. Dependabot opens fix pull requests from your default branch on GitHub. Keep Me Secure answers in your coding session on your working copy, and adds flaws in Node.js and PHP themselves, support end dates, platform breaches and OS packages in Dockerfiles. It can also set up Dependabot.
+
 ## Tools
 
 - `check_packages` (hosted): checks a list of up to 500 exact package versions

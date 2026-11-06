@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Keep Me Secure: is my stack secure? Free MCP server</title>
-<meta name="description" content="Free, open source MCP server. Ask your coding agent &quot;Is my stack secure?&quot; and it checks every package you use against public security advisories.">
+<meta name="description" content="Free, open source MCP server. Ask your coding agent &quot;Is my stack secure?&quot; and it checks your packages, Node.js and PHP versions, Dockerfiles and known platform breaches.">
 <link rel="canonical" href="https://keepmesecure.dev/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/style.css">
@@ -49,6 +49,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "What is Keep Me Secure?", "acceptedAnswer": { "@type": "Answer", "text": "Keep Me Secure is a free, open source MCP server. It lets your coding agent check the packages in your project against public security advisories, then answer yes, no or unknown, with what to do next." } },
+        { "@type": "Question", "name": "Do I still need Dependabot?", "acceptedAnswer": { "@type": "Answer", "text": "Keep using it. Dependabot is great at opening fix pull requests, and Keep Me Secure can set it up for you. Keep Me Secure adds what Dependabot's alerts don't look at, such as flaws in Node.js and PHP themselves, support end dates, platform breaches and OS packages in Dockerfiles. It also answers in your coding session, on your working copy." } },
         { "@type": "Question", "name": "When does it check?", "acceptedAnswer": { "@type": "Answer", "text": "In Claude Code it runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The result is saved on your machine, not in your project. You can also ask at any time." } },
         { "@type": "Question", "name": "Does it check test folders?", "acceptedAnswer": { "@type": "Answer", "text": "No. Lockfiles in test and example folders usually don't ship, so they're skipped to avoid false alarms. They're listed in the result, and you can still check one by asking for that folder." } },
         { "@type": "Question", "name": "Does it check Node.js and PHP themselves?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It reads the versions your project declares, in files such as .nvmrc, composer.json and Dockerfile, and warns about known flaws in Node.js and PHP. Those may differ from what runs on your servers, so check that too. If a project only declares a range, it says it can't confirm." } },
@@ -81,7 +82,7 @@
 
 <section class="hero">
 <h1><span class="dim">$ </span>Is my stack secure?<span class="cursor" aria-hidden="true"></span></h1>
-<p class="lead">Ask your coding agent. Keep Me Secure is a free MCP server that checks every package you use against public security advisories and tells you yes or no, with what to do next.</p>
+<p class="lead">Ask your coding agent. Keep Me Secure is a free MCP server that checks more than your packages: your Node.js and PHP versions, your Dockerfiles, and known breaches at platforms you use. You get one answer, with what to do next.</p>
 </section>
 
 <section aria-labelledby="connect">
@@ -131,6 +132,26 @@
 <p class="dim">It never changes anything without your OK.</p>
 </section>
 
+<section aria-labelledby="dependabot">
+<h2 id="dependabot">Why not just Dependabot?</h2>
+<p>Keep using it. Dependabot is great at opening fix pull requests, and Keep Me Secure can set it up for you. Keep Me Secure adds what Dependabot's alerts don't look at, and answers in your coding session.</p>
+<table>
+<thead><tr><th scope="col">&nbsp;</th><th scope="col">Dependabot</th><th scope="col">Keep Me Secure</th></tr></thead>
+<tbody>
+<tr><th scope="row">Known flaws in packages</th><td>Yes</td><td>Yes</td></tr>
+<tr><th scope="row">Automatic fix pull requests</th><td>Yes</td><td>No, your agent proposes the fix</td></tr>
+<tr><th scope="row">Flaws in Node.js and PHP themselves</th><td>No</td><td>Yes</td></tr>
+<tr><th scope="row">Support end dates</th><td>No</td><td>Yes</td></tr>
+<tr><th scope="row">Breaches at platforms you use</th><td>No</td><td>Yes, from a curated list</td></tr>
+<tr><th scope="row">OS packages in Dockerfiles</th><td>No</td><td>Yes, as a warning</td></tr>
+<tr><th scope="row">Waiting before new releases install</th><td>For its own pull requests</td><td>Checks npm, pnpm, Yarn and Composer</td></tr>
+<tr><th scope="row">What it reads</th><td>Your default branch on GitHub</td><td>Your working copy, even uncommitted</td></tr>
+<tr><th scope="row">Where you see it</th><td>GitHub alerts and pull requests</td><td>In your coding session</td></tr>
+</tbody>
+</table>
+<p class="dim">Dependabot can also update Docker image tags. Compared with <a href="https://docs.github.com/en/code-security/concepts/supply-chain-security/about-dependabot-alerts">GitHub's documentation</a> in November 2026.</p>
+</section>
+
 <section aria-labelledby="checks">
 <h2 id="checks">What it checks</h2>
 <p>Every package in your lockfiles, including the ones you didn't install directly, for PHP, JavaScript, Python, Go, Rust, Ruby, Java and .NET.</p>
@@ -148,6 +169,8 @@
 <h2 id="faq">Questions</h2>
 <h3>What is Keep Me Secure?</h3>
 <p class="dim">Keep Me Secure is a free, open source MCP server. It lets your coding agent check the packages in your project against public security advisories, then answer yes, no or unknown, with what to do next.</p>
+<h3>Do I still need Dependabot?</h3>
+<p class="dim">Keep using it. Dependabot is great at opening fix pull requests, and Keep Me Secure can set it up for you. Keep Me Secure adds what Dependabot's alerts don't look at, such as flaws in Node.js and PHP themselves, support end dates, platform breaches and OS packages in Dockerfiles. It also answers in your coding session, on your working copy.</p>
 <h3>When does it check?</h3>
 <p class="dim">In Claude Code it runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The result is saved on your machine, not in your project. You can also ask at any time.</p>
 <h3>Does it check test folders?</h3>

@@ -11,6 +11,10 @@
 
 It's a free, open source MCP server. It checks every package in your lockfiles against public security advisories, including the ones you didn't install directly.
 
+## Why not just Dependabot?
+
+Keep using it: it's great at opening fix pull requests, and this can set it up for you. Keep Me Secure adds flaws in Node.js and PHP themselves, support end dates, platform breaches and OS packages in Dockerfiles, and it answers in your coding session, on your working copy.
+
 ## Quick start
 
 Add it to Claude Code. You need Node.js 22 or newer, and no account or Docker.
