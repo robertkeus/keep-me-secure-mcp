@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog | Keep Me Secure</title>
+<meta name="description" content="What changed in each release of Keep Me Secure.">
+<link rel="canonical" href="https://keepmesecure.dev/changelog">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<meta name="color-scheme" content="light dark">
+<script src="/main.js"></script>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+<a class="brand" href="/">keep-me-secure</a>
+<nav aria-label="Main">
+<a href="https://github.com/robertkeus/keep-me-secure-mcp">github</a>
+<button type="button" id="theme" class="btn" hidden>dark</button>
+</nav>
+</header>
+
+<main>
+
+<section class="hero">
+<h1><span class="dim">$ </span>Changelog</h1>
+<p class="lead">What changed in each release. To update the Claude Code plugin, run <code>claude plugin marketplace update keep-me-secure-mcp</code>, then <code>claude plugin update keep-me-secure@keep-me-secure-mcp</code>.</p>
+</section>
+
+<article>
+<h2>1.6.0</h2>
+<p class="dim"><time datetime="2026-11-06">2026-11-06</time></p>
+
+<ul class="plain">
+<li>Shows when your Node.js or PHP version stops getting support, and whether it's an LTS line</li>
+<li>Checks whether npm, pnpm, Yarn and Composer wait before installing new releases, and how to let an urgent fix through</li>
+<li>Flags direct dependencies that are deprecated, abandoned, or have had no release for two years</li>
+<li>Adds this changelog</li>
+</ul>
+</article>
+
+<article>
+<h2>1.5.0</h2>
+<p class="dim"><time datetime="2026-11-06">2026-11-06</time></p>
+
+<ul class="plain">
+<li>Checks declared Node.js and PHP versions against known flaws, with exploited status taken live from CISA</li>
+<li>Adds the <code>check_runtime</code> tool</li>
+<li>Reports ranges and unreadable versions as unverified, never as clear</li>
+<li>Adds the privacy statement and terms</li>
+</ul>
+</article>
+
+<article>
+<h2>1.4.0</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Warns about security incidents at platforms a project uses, such as Railway and Vercel</li>
+<li>Adds the <code>check_platform</code> tool and a public incidents page</li>
+</ul>
+</article>
+
+<article>
+<h2>1.3.2</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+<p class="dim">Security release, after independent audits.</p>
+<ul class="plain">
+<li>Malicious releases stay flagged when an ordinary advisory shares their alias</li>
+<li>Text from a repo can no longer reach the agent through the session-start message</li>
+<li>Advisory ids and versions must match strict patterns, and cache keys can't choose a file path</li>
+<li>Anything that can't be read gives unknown, never no</li>
+<li>Replaces the YAML library with a line-based pnpm reader</li>
+<li>Fixes slow parsing, IPv6 rate limit keys and chunked request limits</li>
+<li>Pins workflows to commits and the base image to a digest</li>
+</ul>
+</article>
+
+<article>
+<h2>1.3.1</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Skips lockfiles in test and example folders, and lists them in the result</li>
+<li>Reports a package found in several lockfiles once, and lists the five worst advisories, which makes results much smaller</li>
+</ul>
+</article>
+
+<article>
+<h2>1.3.0</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Adds the Claude Code plugin, with a daily check at session start and no Docker needed</li>
+</ul>
+</article>
+
+<article>
+<h2>1.2.0</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Adds the hosted server at mcp.keepmesecure.dev, and the <code>check_packages</code> tool</li>
+<li>Adds self-hosting and the website</li>
+</ul>
+</article>
+
+<article>
+<h2>1.1.1</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Moves to Node.js 26 LTS</li>
+<li>Lists the project on the MCP Registry</li>
+</ul>
+</article>
+
+<article>
+<h2>1.1.0</h2>
+<p class="dim"><time datetime="2026-11-05">2026-11-05</time></p>
+
+<ul class="plain">
+<li>Adds Go, Rust, Ruby, Java and .NET</li>
+<li>Broad questions like &quot;Is my stack secure?&quot; now trigger a full check</li>
+</ul>
+</article>
+
+<article>
+<h2>1.0.0</h2>
+<p class="dim"><time datetime="2026-11-04">2026-11-04</time></p>
+
+<ul class="plain">
+<li>First stable release, with retries and pinned installs</li>
+</ul>
+</article>
+
+<article>
+<h2>0.1.0</h2>
+<p class="dim"><time datetime="2026-11-04">2026-11-04</time></p>
+
+<ul class="plain">
+<li>First release: checks PHP, JavaScript and Python lockfiles against public advisories</li>
+</ul>
+</article>
+
+</main>
+
+<footer class="bottom">
+<span class="dim"><a href="/changelog">Changelog</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
+<a href="/">Keep Me Secure</a>
+</footer>
+
+</div>
+</body>
+</html>

@@ -16,6 +16,7 @@ import {
 } from "./parsers.ts";
 import { PLATFORM_FILES, PLATFORM_PACKAGES } from "./platforms.ts";
 import { type DeclaredRuntime, parseDeclared, type Runtime } from "./runtimes.ts";
+import { findProtection } from "./upkeep.ts";
 import type { Ecosystem, Parsed, Scan } from "./types.ts";
 
 const SKIP_DIRS = new Set(["node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", ".gradle", "__pycache__"]);
@@ -190,6 +191,7 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
   for (const [runtime, ecosystem] of [["node", "npm"], ["php", "Packagist"]] as const)
     if (uses(ecosystem) && !scan.runtimes.some((d) => d.runtime === runtime))
       scan.runtimes.push(parseDeclared(runtime, "not declared", ""));
+  scan.protection = await findProtection(files);
   scan.private = [...new Set(scan.private)].slice(0, MAX_LISTED);
   scan.unchecked = scan.unchecked.slice(0, MAX_LISTED);
   return scan;

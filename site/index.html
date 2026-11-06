@@ -52,6 +52,7 @@
         { "@type": "Question", "name": "When does it check?", "acceptedAnswer": { "@type": "Answer", "text": "In Claude Code it runs when a session starts, with a real check once a day per project. A changed lockfile triggers a new check straight away. The result is saved on your machine, not in your project. You can also ask at any time." } },
         { "@type": "Question", "name": "Does it check test folders?", "acceptedAnswer": { "@type": "Answer", "text": "No. Lockfiles in test and example folders usually don't ship, so they're skipped to avoid false alarms. They're listed in the result, and you can still check one by asking for that folder." } },
         { "@type": "Question", "name": "Does it check Node.js and PHP themselves?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It reads the versions your project declares, in files such as .nvmrc, composer.json and Dockerfile, and warns about known flaws in Node.js and PHP. Those may differ from what runs on your servers, so check that too. If a project only declares a range, it says it can't confirm." } },
+        { "@type": "Question", "name": "Does it warn about old packages?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, as a note. It flags direct dependencies that are deprecated, abandoned, or have had no release for two years. Old doesn't mean unsafe, so this doesn't change the yes or no. It also shows when your Node.js or PHP version stops getting support, and whether your package manager waits before installing new releases." } },
         { "@type": "Question", "name": "Does it check platform breaches?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, for known ones. If your project uses a platform with a recent security incident, such as Railway or Vercel, it tells you what happened and what to do, with a link to the source. There's no public database for this, so we keep a curated list, and it isn't complete." } },
         { "@type": "Question", "name": "Which coding agents does it work with?", "acceptedAnswer": { "@type": "Answer", "text": "It's tested with Claude Code, Codex and opencode. Other agents that support MCP should work too." } },
         { "@type": "Question", "name": "Which languages and lockfiles does it support?", "acceptedAnswer": { "@type": "Answer", "text": "PHP (composer.lock), JavaScript (package-lock.json, pnpm-lock.yaml, yarn.lock), Python (requirements.txt, poetry.lock, uv.lock), Go (go.mod), Rust (Cargo.lock), Ruby (Gemfile.lock), Java and Kotlin (gradle.lockfile) and .NET (packages.lock.json)." } },
@@ -134,6 +135,7 @@
 <h2 id="checks">What it checks</h2>
 <p>Every package in your lockfiles, including the ones you didn't install directly, for PHP, JavaScript, Python, Go, Rust, Ruby, Java and .NET.</p>
 <p>It also checks your Node.js and PHP versions, and warns you about known breaches at platforms you use, such as Railway and Vercel. <a href="/incidents">See recent incidents</a>.</p>
+<p>And it flags old packages, ending support dates, and whether new releases wait before installing, which blocks many supply chain attacks.</p>
 <p class="dim">It doesn't check your servers, OS packages, Docker images or your own code. The runtime and incident lists are curated, so they aren't complete.</p>
 </section>
 
@@ -152,6 +154,8 @@
 <p class="dim">No. Lockfiles in test and example folders usually don't ship, so they're skipped to avoid false alarms. They're listed in the result, and you can still check one by asking for that folder.</p>
 <h3>Does it check Node.js and PHP themselves?</h3>
 <p class="dim">Yes. It reads the versions your project declares, in files such as .nvmrc, composer.json and Dockerfile, and warns about known flaws in Node.js and PHP. Those may differ from what runs on your servers, so check that too. If a project only declares a range, it says it can't confirm.</p>
+<h3>Does it warn about old packages?</h3>
+<p class="dim">Yes, as a note. It flags direct dependencies that are deprecated, abandoned, or have had no release for two years. Old doesn't mean unsafe, so this doesn't change the yes or no. It also shows when your Node.js or PHP version stops getting support, and whether your package manager waits before installing new releases.</p>
 <h3>Does it check platform breaches?</h3>
 <p class="dim">Yes, for known ones. If your project uses a platform with a recent security incident, such as Railway or Vercel, it tells you what happened and what to do, with a link to the source. There's no public database for this, so we keep a curated list, and it isn't complete. See the <a href="/incidents">incident list</a>.</p>
 <h3>Which coding agents does it work with?</h3>
@@ -171,7 +175,7 @@
 </main>
 
 <footer class="bottom">
-<span class="dim">Free and open source (MIT) · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
+<span class="dim">Free and open source (MIT) · <a href="/changelog">Changelog</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
 <a href="https://github.com/robertkeus/keep-me-secure-mcp">Run it yourself</a>
 </footer>
 

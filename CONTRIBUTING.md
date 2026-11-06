@@ -33,6 +33,10 @@ When Node.js or PHP ships a security release, add it to `RUNTIME_ADVISORIES` in 
 
 Add incidents to `src/platforms.ts`, then run `npm run build:site` and `npm run build:plugin`. Stick to what the company has said, link its own statement if there is one, and don't claim more than it did. Use `audience: "notified"` when it contacted those affected, rather than advising everyone to act.
 
+## Releases
+
+Add an entry to `CHANGELOG.md`, because a test fails without one for the current version. The changelog page on the site is built from that file, so run `npm run build:site`. The website is deployed after every release.
+
 ## Website
 
 The site in `site/` is plain HTML, CSS and JavaScript, served by the Worker. Anything that isn't a file there, such as `/mcp`, reaches the Worker. If you change the FAQ, update the JSON-LD in `site/index.html` and `site/llms.txt` to match.

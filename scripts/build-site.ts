@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { INCIDENTS } from "../src/platforms.ts";
 import { RUNTIME_ADVISORIES } from "../src/runtimes.ts";
 
@@ -54,7 +54,7 @@ ${entries}
 </main>
 
 <footer class="bottom">
-<span class="dim"><a href="/incidents.json">Data as JSON</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
+<span class="dim"><a href="/incidents.json">Data as JSON</a> · <a href="/changelog">Changelog</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
 <a href="/">Keep Me Secure</a>
 </footer>
 
@@ -63,6 +63,41 @@ ${entries}
 </html>
 `;
 
+const inline = (s: string) => escape(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const releases = readFileSync("CHANGELOG.md", "utf8")
+  .split(/^## /m)
+  .slice(1)
+  .map((block) => {
+    const [title, ...lines] = block.trim().split("\n").filter(Boolean);
+    const [, version, date] = title!.match(/^(\S+) \((.+)\)$/)!;
+    const notes = lines.filter((l) => !l.startsWith("- ")).map((l) => `<p class="dim">${inline(l)}</p>`);
+    const items = lines.filter((l) => l.startsWith("- ")).map((l) => `<li>${inline(l.slice(2))}</li>`);
+    return `<article>
+<h2>${escape(version!)}</h2>
+<p class="dim"><time datetime="${escape(date!)}">${escape(date!)}</time></p>
+${notes.join("\n")}
+<ul class="plain">
+${items.join("\n")}
+</ul>
+</article>`;
+  })
+  .join("\n\n");
+
+const changelog = page
+  .replace("<title>Developer platform security incidents | Keep Me Secure</title>", "<title>Changelog | Keep Me Secure</title>")
+  .replace(/<meta name="description"[^>]*>/, '<meta name="description" content="What changed in each release of Keep Me Secure.">')
+  .replace("https://keepmesecure.dev/incidents", "https://keepmesecure.dev/changelog")
+  .replace(/<section class="hero">[\s\S]*<\/main>/, `<section class="hero">
+<h1><span class="dim">$ </span>Changelog</h1>
+<p class="lead">What changed in each release. To update the Claude Code plugin, run <code>claude plugin marketplace update keep-me-secure-mcp</code>, then <code>claude plugin update keep-me-secure@keep-me-secure-mcp</code>.</p>
+</section>
+
+${releases}
+
+</main>`)
+  .replace('<a href="/incidents.json">Data as JSON</a> · ', "");
+
+writeFileSync("site/changelog.html", changelog);
 writeFileSync("site/incidents.json", JSON.stringify(sorted, null, 2) + "\n");
 writeFileSync("site/incidents.html", page);
 writeFileSync("site/runtimes.json", JSON.stringify(RUNTIME_ADVISORIES, null, 2) + "\n");

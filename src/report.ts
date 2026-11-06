@@ -2,6 +2,7 @@ import { epssScores, knownExploited } from "./enrich.ts";
 import { compareVersions, pkgKey, queryAdvisories } from "./osv.ts";
 import type { PlatformReport } from "./platforms.ts";
 import type { RuntimeReport } from "./runtimes.ts";
+import type { InstallProtection, OldPackages } from "./upkeep.ts";
 import { isSafeVersion } from "./scan.ts";
 import type { Advisory, Dep, Scan, Severity, Unchecked } from "./types.ts";
 
@@ -45,6 +46,8 @@ export interface Report {
   note: string;
   platforms?: PlatformReport & { detected: string[] };
   runtimes?: RuntimeReport;
+  install_protection?: InstallProtection;
+  old_packages?: OldPackages;
 }
 
 const SEVERITY_ORDER: Severity[] = ["CRITICAL", "HIGH", "UNKNOWN", "MODERATE", "LOW"];
