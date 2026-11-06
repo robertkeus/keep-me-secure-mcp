@@ -59,10 +59,7 @@ export interface RuntimeReport {
 }
 
 const FEED_URL = "https://keepmesecure.dev/runtimes.json";
-const SUPPORT_URLS: Record<Runtime, string> = {
-  node: "https://endoflife.date/api/nodejs.json",
-  php: "https://endoflife.date/api/php.json",
-};
+const SUPPORT_PRODUCTS: Record<Runtime, string> = { node: "nodejs", php: "php" };
 const SOON_DAYS = 180;
 const NAMES: Record<Runtime, string> = { node: "Node.js", php: "PHP" };
 const NOTE =
@@ -182,12 +179,12 @@ interface Cycle {
 }
 
 /** Support dates are a nice extra, so a failed download only means they're left out. */
-async function loadCycles(runtime: Runtime): Promise<Cycle[]> {
-  const key = `support-${runtime}`;
+export async function loadCycles(product: string): Promise<Cycle[]> {
+  const key = `support-${product}`;
   const cached = await readCache<{ date: string; cycles: Cycle[] }>(key);
   if (cached?.date === today() && Array.isArray(cached.cycles)) return cached.cycles;
   try {
-    const res = await fetch(SUPPORT_URLS[runtime], { signal: AbortSignal.timeout(10_000) });
+    const res = await fetch(`https://endoflife.date/api/${product}.json`, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(String(res.status));
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("not a list");
@@ -203,14 +200,14 @@ async function loadCycles(runtime: Runtime): Promise<Cycle[]> {
   }
 }
 
-function supportOf(d: DeclaredRuntime, cycles: Cycle[]): Support | null {
-  const cycle = cycles.find((c) => c.cycle === d.line);
+export function supportOf(line: string | null, cycles: Cycle[], showLts: boolean): Support | null {
+  const cycle = cycles.find((c) => c.cycle === line);
   if (!cycle?.eol) return null;
   const daysLeft = (Date.parse(cycle.eol) - Date.now()) / (24 * 60 * 60 * 1000);
   return {
     line: cycle.cycle,
     status: daysLeft < 0 ? "end_of_life" : daysLeft <= SOON_DAYS ? "ending_soon" : "on_track",
-    lts: d.runtime === "node" ? cycle.lts : null,
+    lts: showLts ? cycle.lts : null,
     active_until: cycle.active,
     security_until: cycle.eol,
   };
@@ -219,7 +216,7 @@ function supportOf(d: DeclaredRuntime, cycles: Cycle[]): Support | null {
 export async function checkRuntimes(declared: DeclaredRuntime[], advisories: RuntimeAdvisory[]): Promise<RuntimeReport> {
   const kev = declared.length ? await knownExploited() : null;
   const runtimes = [...new Set(declared.map((d) => d.runtime))];
-  const cycles = new Map(await Promise.all(runtimes.map(async (r) => [r, await loadCycles(r)] as const)));
+  const cycles = new Map(await Promise.all(runtimes.map(async (r) => [r, await loadCycles(SUPPORT_PRODUCTS[r])] as const)));
   const findings = declared.flatMap((d) =>
     advisories.filter((a) => a.runtime === d.runtime).flatMap((a) => assess(a, d, kev) ?? []),
   );
@@ -228,7 +225,7 @@ export async function checkRuntimes(declared: DeclaredRuntime[], advisories: Run
       runtime: d.runtime,
       declared: d.declared,
       file: d.file,
-      support: supportOf(d, cycles.get(d.runtime) ?? []),
+      support: supportOf(d.line, cycles.get(d.runtime) ?? [], d.runtime === "node"),
     })),
     findings: findings.sort((a, b) => Number(a.status === "unverified") - Number(b.status === "unverified")),
     note: NOTE,

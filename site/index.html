@@ -59,7 +59,7 @@
         { "@type": "Question", "name": "Where does the security data come from?", "acceptedAnswer": { "@type": "Answer", "text": "OSV.dev for advisories, the CISA Known Exploited Vulnerabilities list for active attacks, and FIRST EPSS for the chance of exploitation." } },
         { "@type": "Question", "name": "Is it free? Do I need an account?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, it's free and MIT licensed. You don't need an account or a token." } },
         { "@type": "Question", "name": "Will it change my code?", "acceptedAnswer": { "@type": "Answer", "text": "No. It only reads and reports. Your agent suggests the upgrade, and you decide whether to run it." } },
-        { "@type": "Question", "name": "What does a \"no\" mean?", "acceptedAnswer": { "@type": "Answer", "text": "No known issue in public advisories at the time of the check. If the check was incomplete, the answer is unknown, never no. It isn't a full security audit: it doesn't cover your servers, OS packages, Docker images or your own code." } }
+        { "@type": "Question", "name": "What does a \"no\" mean?", "acceptedAnswer": { "@type": "Answer", "text": "No known issue in public advisories at the time of the check. If the check was incomplete, the answer is unknown, never no. It isn't a full security audit: it doesn't scan built images, your servers, software on your computer, or your own code." } }
       ]
     }
   ]
@@ -135,8 +135,8 @@
 <h2 id="checks">What it checks</h2>
 <p>Every package in your lockfiles, including the ones you didn't install directly, for PHP, JavaScript, Python, Go, Rust, Ruby, Java and .NET.</p>
 <p>It also checks your Node.js and PHP versions, and warns you about known breaches at platforms you use, such as Railway and Vercel. <a href="/incidents">See recent incidents</a>.</p>
-<p>And it flags old packages, ending support dates, and whether new releases wait before installing, which blocks many supply chain attacks.</p>
-<p class="dim">It doesn't check your servers, OS packages, Docker images or your own code. The runtime and incident lists are curated, so they aren't complete.</p>
+<p>And it reads your Dockerfiles, flags old packages and ending support dates, and can set up Dependabot.</p>
+<p class="dim">It doesn't scan built images, your servers, software on your computer, or your own code. The runtime and incident lists are curated, so they aren't complete.</p>
 </section>
 
 <section aria-labelledby="data">
@@ -169,7 +169,7 @@
 <h3>Will it change my code?</h3>
 <p class="dim">No. It only reads and reports. Your agent suggests the upgrade, and you decide whether to run it.</p>
 <h3>What does a "no" mean?</h3>
-<p class="dim">No known issue in public advisories at the time of the check. If the check was incomplete, the answer is unknown, never no. It isn't a full security audit: it doesn't cover your servers, OS packages, Docker images or your own code.</p>
+<p class="dim">No known issue in public advisories at the time of the check. If the check was incomplete, the answer is unknown, never no. It isn't a full security audit: it doesn't scan built images, your servers, software on your computer, or your own code.</p>
 </section>
 
 </main>

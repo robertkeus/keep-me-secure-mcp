@@ -14,6 +14,8 @@ import {
   parseUvLock,
   parseYarnLock,
 } from "./parsers.ts";
+import { dependabotConfig } from "./dependabot.ts";
+import { type ImageInfo, isDockerfile, parseDockerfile } from "./docker.ts";
 import { PLATFORM_FILES, PLATFORM_PACKAGES } from "./platforms.ts";
 import { type DeclaredRuntime, parseDeclared, type Runtime } from "./runtimes.ts";
 import { findProtection } from "./upkeep.ts";
@@ -98,7 +100,7 @@ async function findRuntimes(root: string, files: string[]): Promise<DeclaredRunt
   for (const file of files) {
     const base = baseName(file);
     const wanted = [".nvmrc", ".node-version", ".php-version", ".tool-versions", "package.json", "composer.json"].includes(base);
-    if (!wanted && !/^Dockerfile/.test(base)) continue;
+    if (!wanted && !isDockerfile(base)) continue;
     try {
       if ((await stat(file)).size > MAX_RUNTIME_FILE_BYTES) continue;
       const text = await readFile(file, "utf8");
@@ -129,6 +131,19 @@ async function findRuntimes(root: string, files: string[]): Promise<DeclaredRunt
 }
 
 const covers = (lockDir: string, dir: string) => dir === lockDir || dir.startsWith(lockDir + "/");
+
+async function findImages(root: string, files: string[]): Promise<ImageInfo[]> {
+  const images: ImageInfo[] = [];
+  for (const file of files.filter((f) => isDockerfile(baseName(f)))) {
+    try {
+      if ((await stat(file)).size <= MAX_RUNTIME_FILE_BYTES)
+        images.push(...parseDockerfile(await readFile(file, "utf8"), safeLabel(relative(root, file))));
+    } catch {}
+  }
+  return images;
+}
+
+export const projectFiles = async (root: string) => (await walk(root)).filter((f) => !inTestDir(relative(root, f)));
 
 export async function scanProject(root: string, only?: Ecosystem): Promise<Scan> {
   const scan: Scan = { deps: [], private: [], unchecked: [] };
@@ -192,6 +207,9 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
     if (uses(ecosystem) && !scan.runtimes.some((d) => d.runtime === runtime))
       scan.runtimes.push(parseDeclared(runtime, "not declared", ""));
   scan.protection = await findProtection(files);
+  scan.images = await findImages(root, files);
+  const { exists, missing } = await dependabotConfig(root, files);
+  scan.dependabot = { exists, missing };
   scan.private = [...new Set(scan.private)].slice(0, MAX_LISTED);
   scan.unchecked = scan.unchecked.slice(0, MAX_LISTED);
   return scan;

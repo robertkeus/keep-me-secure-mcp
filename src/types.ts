@@ -1,3 +1,4 @@
+import type { ImageInfo } from "./docker.ts";
 import type { DeclaredRuntime } from "./runtimes.ts";
 import type { ManagerProtection } from "./upkeep.ts";
 
@@ -9,6 +10,8 @@ export interface Dep {
   version: string;
   direct: boolean;
   lockfile: string;
+  /** True when the lockfile marks this as a development-only package. */
+  dev?: boolean;
 }
 
 export interface Unchecked {
@@ -35,6 +38,8 @@ export interface Scan {
   runtimes?: DeclaredRuntime[];
   /** Whether each package manager in use waits before installing new releases. */
   protection?: ManagerProtection[];
+  images?: ImageInfo[];
+  dependabot?: { exists: boolean; missing: string[] };
 }
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";

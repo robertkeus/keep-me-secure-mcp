@@ -1,0 +1,16 @@
+[
+  {
+    "id": "openssh-sshole-2026-11",
+    "os": "alpine",
+    "packages": [
+      "openssh",
+      "openssh-server",
+      "openssh-server-common"
+    ],
+    "date": "2026-11-05",
+    "severity": "CRITICAL",
+    "summary": "On Linux with musl and PAM disabled, OpenSSH 10.6p2 fixes a password authentication bypass in sshd. Reports say accounts locked with an asterisk can accept a long password.",
+    "action": "Rebuild on a supported Alpine release to get its patched package. Alpine can patch older OpenSSH versions, so don't judge by version number. If you can't rebuild yet, set PasswordAuthentication no.",
+    "source": "https://www.openssh.org/releasenotes.html"
+  }
+]

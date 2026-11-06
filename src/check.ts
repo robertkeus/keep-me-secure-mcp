@@ -3,6 +3,8 @@ import { realpathSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { readCache, today, writeCache } from "./cache.ts";
 import { normalizePy } from "./parsers.ts";
+import { dependabotConfig, type DependabotReport } from "./dependabot.ts";
+import { checkContainers, loadSystemAdvisories } from "./docker.ts";
 import { allIncidents, forPlatforms, INCIDENTS, isRecent, loadIncidents, type PlatformReport } from "./platforms.ts";
 import { buildReport, NO_LOCKFILE, type Report } from "./report.ts";
 import {
@@ -14,7 +16,7 @@ import {
   type Runtime,
   type RuntimeReport,
 } from "./runtimes.ts";
-import { isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
+import { projectFiles, isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
 import type { Dep, Ecosystem, Scan } from "./types.ts";
 import { findOldPackages, installProtection } from "./upkeep.ts";
 
@@ -84,6 +86,8 @@ export async function checkProject(
     runtimes: await checkRuntimes(scan.runtimes ?? [], await loadRuntimeAdvisories()),
     install_protection: installProtection(scan.protection ?? []),
     old_packages: opts.packageAges === false ? undefined : await findOldPackages(scan.deps),
+    containers: await checkContainers(scan.images ?? [], await loadSystemAdvisories()),
+    dependabot: scan.dependabot,
   });
   if (!opts.refresh && cached?.date === today()) return withPlatforms(cached.report);
   const report = await buildReport(scan);
@@ -101,6 +105,11 @@ function toDep(opts: PackageInput): Dep {
   if (!isSafeName(name, ecosystem) || !isSafeVersion(version))
     throw new InputError("name must be a package name and version an exact version such as 1.2.3, not a range.");
   return { ecosystem, name, version, direct: true, lockfile: "" };
+}
+
+export async function suggestDependabot(path?: string): Promise<DependabotReport> {
+  const root = projectRoot(path);
+  return dependabotConfig(root, await projectFiles(root));
 }
 
 export async function checkPackage(opts: PackageInput): Promise<Report> {
@@ -154,11 +163,21 @@ export function summarize(r: Report): string {
       ? `keep-me-secure: ${name} reached end of life on ${d.support.security_until}. Move to a supported version.`
       : `keep-me-secure: ${name} stops getting security fixes on ${d.support.security_until}.`;
   });
+  const OS_NAMES = { alpine: "Alpine", debian: "Debian", ubuntu: "Ubuntu" };
+  const images = (r.containers?.images ?? []).flatMap((i) => {
+    if (i.support?.status !== "end_of_life" || !i.os) return [];
+    return `keep-me-secure: an image uses ${OS_NAMES[i.os]} ${i.support.line}, which reached end of life on ${i.support.security_until}.`;
+  });
+  const system = (r.containers?.findings ?? [])
+    .filter((f) => isRecent(f))
+    .map((f) => `keep-me-secure: a Dockerfile installs ${f.package}, which has a recent ${f.severity} flaw on this OS. Call the check_project tool for what to do.`);
   const recent = (r.platforms?.incidents ?? []).filter((i) => isRecent(i));
   const platforms = recent.map(
     (i) => `keep-me-secure: ${i.platform} reported a security incident on ${i.date}. Call the check_platform tool for what to do.`,
   );
-  return [packages, ...new Set(runtimes), ...new Set(support), ...platforms].filter(Boolean).join("\n");
+  return [packages, ...new Set(runtimes), ...new Set(support), ...new Set(images), ...new Set(system), ...platforms]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function summarizePackages(r: Report): string {
