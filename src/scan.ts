@@ -15,6 +15,7 @@ import {
   parseYarnLock,
 } from "./parsers.ts";
 import { PLATFORM_FILES, PLATFORM_PACKAGES } from "./platforms.ts";
+import { type DeclaredRuntime, parseDeclared, type Runtime } from "./runtimes.ts";
 import type { Ecosystem, Parsed, Scan } from "./types.ts";
 
 const SKIP_DIRS = new Set(["node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", ".gradle", "__pycache__"]);
@@ -83,6 +84,49 @@ async function readLimited(file: string): Promise<string> {
   return readFile(file, "utf8");
 }
 
+const MAX_RUNTIMES = 40;
+const MAX_RUNTIME_FILE_BYTES = 1024 * 1024;
+
+/** Finds the runtime versions a project declares. A file it can't read just adds nothing. */
+async function findRuntimes(root: string, files: string[]): Promise<DeclaredRuntime[]> {
+  const found: DeclaredRuntime[] = [];
+  const add = (runtime: Runtime, raw: unknown, file: string) => {
+    if (raw === undefined || raw === null) return;
+    found.push(parseDeclared(runtime, typeof raw === "string" ? raw : "", safeLabel(relative(root, file))));
+  };
+  for (const file of files) {
+    const base = baseName(file);
+    const wanted = [".nvmrc", ".node-version", ".php-version", ".tool-versions", "package.json", "composer.json"].includes(base);
+    if (!wanted && !/^Dockerfile/.test(base)) continue;
+    try {
+      if ((await stat(file)).size > MAX_RUNTIME_FILE_BYTES) continue;
+      const text = await readFile(file, "utf8");
+      if (base === ".nvmrc" || base === ".node-version") add("node", text.split(/\r?\n/, 1)[0], file);
+      else if (base === ".php-version") add("php", text.split(/\r?\n/, 1)[0], file);
+      else if (base === ".tool-versions") {
+        for (const line of text.split(/\r?\n/)) {
+          const [tool, version] = line.trim().split(/\s+/);
+          if (tool === "nodejs" || tool === "node") add("node", version, file);
+          if (tool === "php") add("php", version, file);
+        }
+      } else if (base === "package.json") {
+        const json = JSON.parse(text);
+        add("node", json?.volta?.node ?? json?.engines?.node, file);
+      } else if (base === "composer.json") {
+        const json = JSON.parse(text);
+        add("php", json?.config?.platform?.php ?? json?.require?.php, file);
+      } else {
+        for (const line of text.split(/\r?\n/)) {
+          const image = line.match(/^\s*FROM\s+(?:--\S+\s+)*(?:\S*\/)?(node|php)(?::([^\s@]+))?(?:@\S+)?(?:\s|$)/i);
+          if (image) add(image[1]!.toLowerCase() as Runtime, (image[2] ?? "latest").split("-", 1)[0], file);
+        }
+      }
+    } catch {}
+  }
+  const unique = new Map(found.map((d) => [`${d.runtime}:${d.declared}:${d.file}`, d]));
+  return [...unique.values()].slice(0, MAX_RUNTIMES);
+}
+
 const covers = (lockDir: string, dir: string) => dir === lockDir || dir.startsWith(lockDir + "/");
 
 export async function scanProject(root: string, only?: Ecosystem): Promise<Scan> {
@@ -141,6 +185,11 @@ export async function scanProject(root: string, only?: Ecosystem): Promise<Scan>
     ...scan.deps.filter((d) => Object.hasOwn(PLATFORM_PACKAGES, d.name)).map((d) => PLATFORM_PACKAGES[d.name]!),
   ];
   scan.platforms = [...new Set(platforms)].sort();
+  scan.runtimes = await findRuntimes(root, files);
+  const uses = (ecosystem: Ecosystem) => scan.deps.some((d) => d.ecosystem === ecosystem);
+  for (const [runtime, ecosystem] of [["node", "npm"], ["php", "Packagist"]] as const)
+    if (uses(ecosystem) && !scan.runtimes.some((d) => d.runtime === runtime))
+      scan.runtimes.push(parseDeclared(runtime, "not declared", ""));
   scan.private = [...new Set(scan.private)].slice(0, MAX_LISTED);
   scan.unchecked = scan.unchecked.slice(0, MAX_LISTED);
   return scan;

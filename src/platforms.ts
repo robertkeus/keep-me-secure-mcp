@@ -151,16 +151,16 @@ export const PLATFORM_PACKAGES: Record<string, string> = {
 };
 
 /** Plain sentences only, with none of the characters a shell command or markup needs. */
-const text = (value: unknown, max: number) =>
+export const isPlainText = (value: unknown, max: number) =>
   typeof value === "string" && value.length > 0 && value.length <= max && /^[\p{L}\p{N} .,:'’()%/-]+$/u.test(value);
 
-const realDate = (value: unknown) =>
+export const isDate = (value: unknown) =>
   typeof value === "string" &&
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   !Number.isNaN(Date.parse(value)) &&
   new Date(value).toISOString().startsWith(value);
 
-function plainHttps(value: unknown): boolean {
+export function isHttps(value: unknown): boolean {
   if (typeof value !== "string" || value.length > 200) return false;
   try {
     const url = new URL(value);
@@ -180,35 +180,41 @@ export function isIncident(x: any): x is Incident {
     Array.isArray(x.names) &&
     x.names.length > 0 &&
     x.names.every((n: unknown) => typeof n === "string" && /^[a-z0-9 .-]{1,40}$/.test(n)) &&
-    realDate(x.date) &&
-    text(x.summary, 300) &&
-    text(x.action, 300) &&
+    isDate(x.date) &&
+    isPlainText(x.summary, 300) &&
+    isPlainText(x.action, 300) &&
     (x.audience === "everyone" || x.audience === "notified") &&
-    plainHttps(x.source)
+    isHttps(x.source)
   );
 }
 
-/** The feed can only add. Bundled entries always stay, so a bad feed can't remove or rewrite a warning. */
-function withBundled(feed: unknown[]): Incident[] {
-  const known = new Set(INCIDENTS.map((i) => i.id));
-  return [...INCIDENTS, ...feed.slice(0, MAX_INCIDENTS).filter(isIncident).filter((i) => !known.has(i.id))];
-}
-
-/** New incidents reach users through the feed, without a release. The bundled list covers being offline. */
-export async function loadIncidents(): Promise<Incident[]> {
-  const cached = await readCache<{ date: string; incidents: unknown[] }>("incidents");
-  if (cached?.date === today() && Array.isArray(cached.incidents)) return withBundled(cached.incidents);
+/**
+ * New entries reach users through a feed, without a release, and the bundled list covers being offline. The feed can
+ * only add: bundled entries always stay, so a bad feed can't remove or rewrite a warning.
+ */
+export async function loadList<T extends { id: string }>(
+  key: string,
+  url: string,
+  isValid: (x: unknown) => x is T,
+  bundled: T[],
+): Promise<T[]> {
+  const known = new Set(bundled.map((b) => b.id));
+  const merge = (feed: unknown[]) => [...bundled, ...feed.slice(0, MAX_INCIDENTS).filter(isValid).filter((x) => !known.has(x.id))];
+  const cached = await readCache<{ date: string; items: unknown[] }>(key);
+  if (cached?.date === today() && Array.isArray(cached.items)) return merge(cached.items);
   try {
-    const res = await fetch(FEED_URL, { signal: AbortSignal.timeout(10_000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(String(res.status));
     const feed = await res.json();
     if (!Array.isArray(feed)) throw new Error("not a list");
-    await writeCache("incidents", { date: today(), incidents: feed.slice(0, MAX_INCIDENTS) });
-    return withBundled(feed);
+    await writeCache(key, { date: today(), items: feed.slice(0, MAX_INCIDENTS) });
+    return merge(feed);
   } catch {
-    return INCIDENTS;
+    return bundled;
   }
 }
+
+export const loadIncidents = () => loadList("incidents", FEED_URL, isIncident, INCIDENTS);
 
 export interface PlatformReport {
   incidents: Incident[];

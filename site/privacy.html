@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy | Keep Me Secure</title>
+<meta name="description" content="Keep Me Secure doesn't store your package lists, has no accounts, and uses no cookies or tracking. Here's exactly what happens to your data.">
+<link rel="canonical" href="https://keepmesecure.dev/privacy">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<meta name="color-scheme" content="light dark">
+<script src="/main.js"></script>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+<a class="brand" href="/">keep-me-secure</a>
+<nav aria-label="Main">
+<a href="https://github.com/robertkeus/keep-me-secure-mcp">github</a>
+<button type="button" id="theme" class="btn" hidden>dark</button>
+</nav>
+</header>
+
+<main>
+
+<section class="hero">
+<h1><span class="dim">$ </span>Privacy</h1>
+<p class="lead">Keep Me Secure is a personal open source project by Robert Keus, not a company. There are no accounts, no cookies, no tracking, and we don't save your package lists.</p>
+<p class="dim">Last updated 6 November 2026</p>
+</section>
+
+<section aria-labelledby="short">
+<h2 id="short">In short</h2>
+<ul class="plain">
+<li>We don't store or log the packages you check.</li>
+<li>We have no accounts, so we don't have your name or email.</li>
+<li>We don't use cookies, analytics or ads, and we don't sell anything.</li>
+<li>The code is public, so you can check all of this yourself.</li>
+</ul>
+</section>
+
+<section aria-labelledby="local">
+<h2 id="local">Claude Code plugin and Docker</h2>
+<p class="dim">These run on your own machine. Your lockfiles, code and file paths stay there, and nothing reaches our server except the two list downloads below.</p>
+<ul class="plain dim">
+<li>Names and versions of public packages are sent to <a href="https://osv.dev">OSV.dev</a> to look up advisories. Packages from private registries, git or local paths are left out where the lockfile shows that. Go, Java, .NET and most pnpm lockfiles don't show it, so private package names in those can be sent.</li>
+<li>When something is affected, CVE numbers are sent to <a href="https://www.first.org/epss/">FIRST</a>.</li>
+<li>Once a day it downloads public lists from <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog">CISA</a> and from this site. These downloads send nothing about your project, but like any web request they show your IP address.</li>
+<li>Results are saved on your machine for a day, in a cache folder or Docker volume, and not in your project.</li>
+</ul>
+</section>
+
+<section aria-labelledby="hosted">
+<h2 id="hosted">Hosted URL</h2>
+<p class="dim">When you use https://mcp.keepmesecure.dev/mcp, your agent sends package names and versions to our server, which runs on Cloudflare Workers.</p>
+<ul class="plain dim">
+<li>We use them to answer that request, and then they're gone. We don't log or store them, and Worker logging is turned off.</li>
+<li>They're passed on to OSV.dev for the lookup, as above. Advisory data from OSV is cached, but your request isn't.</li>
+<li>Your IP address is used to count requests for rate limiting, held briefly in memory.</li>
+<li>Your agent is told to leave out private package names, but we can't enforce that. If your package names are sensitive, use the plugin or Docker instead.</li>
+</ul>
+</section>
+
+<section aria-labelledby="site">
+<h2 id="site">This website</h2>
+<p class="dim">No cookies, no analytics, and nothing loaded from other sites. If you use the dark mode button, your choice is saved in your own browser.</p>
+</section>
+
+<section aria-labelledby="others">
+<h2 id="others">Other companies</h2>
+<p class="dim">We can only speak for ourselves. These services have their own policies, and may keep their own request data, such as your IP address:</p>
+<ul class="plain dim">
+<li><a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> hosts this site and the hosted URL. It also adds network error reporting.</li>
+<li><a href="https://osv.dev">OSV.dev</a>, run by Google, answers advisory lookups.</li>
+<li><a href="https://www.first.org/epss/">FIRST</a> and <a href="https://www.cisa.gov/">CISA</a> provide risk data.</li>
+<li><a href="https://github.com/robertkeus/keep-me-secure-mcp">GitHub</a> hosts the code and the Docker image, and <a href="https://registry.modelcontextprotocol.io">the MCP Registry</a> lists it.</li>
+</ul>
+</section>
+
+<section aria-labelledby="contact">
+<h2 id="contact">Questions</h2>
+<p class="dim">Open an issue on <a href="https://github.com/robertkeus/keep-me-secure-mcp/issues">GitHub</a>. To report a security problem, use the repo's <a href="https://github.com/robertkeus/keep-me-secure-mcp/security">Security tab</a> instead. If this page changes, the update is visible in the repo's history.</p>
+</section>
+
+</main>
+
+<footer class="bottom">
+<span class="dim">Free and open source (MIT) · <a href="/terms">Terms</a></span>
+<a href="/">Keep Me Secure</a>
+</footer>
+
+</div>
+</body>
+</html>

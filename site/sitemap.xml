@@ -2,4 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://keepmesecure.dev/</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>https://keepmesecure.dev/incidents</loc><lastmod>2026-11-05</lastmod></url>
+  <url><loc>https://keepmesecure.dev/privacy</loc><lastmod>2026-11-06</lastmod></url>
+  <url><loc>https://keepmesecure.dev/terms</loc><lastmod>2026-11-06</lastmod></url>
 </urlset>

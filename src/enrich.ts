@@ -16,7 +16,7 @@ export async function knownExploited(): Promise<Set<string> | null> {
     await writeCache("kev", { date: today(), cves });
     return new Set(cves);
   } catch {
-    return cached ? new Set(cached.cves) : null;
+    return null;
   }
 }
 

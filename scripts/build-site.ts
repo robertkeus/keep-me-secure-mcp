@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { INCIDENTS } from "../src/platforms.ts";
+import { RUNTIME_ADVISORIES } from "../src/runtimes.ts";
 
 const escape = (s: string) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const sorted = [...INCIDENTS].sort((a, b) => b.date.localeCompare(a.date));
@@ -53,7 +54,7 @@ ${entries}
 </main>
 
 <footer class="bottom">
-<span class="dim"><a href="/incidents.json">Data as JSON</a></span>
+<span class="dim"><a href="/incidents.json">Data as JSON</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
 <a href="/">Keep Me Secure</a>
 </footer>
 
@@ -64,3 +65,4 @@ ${entries}
 
 writeFileSync("site/incidents.json", JSON.stringify(sorted, null, 2) + "\n");
 writeFileSync("site/incidents.html", page);
+writeFileSync("site/runtimes.json", JSON.stringify(RUNTIME_ADVISORIES, null, 2) + "\n");

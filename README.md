@@ -117,6 +117,20 @@ Lockfiles in test and example folders (such as `test`, `spec`, `fixtures` and `e
 
 Maven has no lockfile, so `pom.xml` projects return `unknown`. So do Gradle and .NET projects with locking turned off.
 
+## Node.js and PHP versions
+
+Flaws in the runtime itself don't appear in your lockfile. In October 2026, Node.js and PHP both shipped fixes for flaws that CISA lists as exploited. So Keep Me Secure also reads the versions your project declares:
+
+| Runtime | Reads |
+|---|---|
+| Node.js | `.nvmrc`, `.node-version`, `.tool-versions`, `volta` and `engines` in `package.json`, `FROM node:` in a Dockerfile |
+| PHP | `.php-version`, `.tool-versions`, `config.platform.php` and `require.php` in `composer.json`, `FROM php:` in a Dockerfile |
+
+- `affected`: that version has the flaw, or its release line got no fix. The session-start message mentions these.
+- `unverified`: the repo only shows a range or a floating tag such as `php:8.5`, so the patch version can't be read. These appear in `check_project`, not the session-start message.
+- Declared versions may not be what runs on your servers, so check those too. `check_runtime` takes an exact version, for example from `php --version`.
+- Advisories are a curated list from each project's own security pages, updated through a [daily feed](https://keepmesecure.dev/runtimes.json). They're reported separately and don't change the package verdict.
+
 ## Platform breaches
 
 Packages aren't the only risk. In October 2026 alone, several developer and AI platforms disclosed incidents where customer secrets may have been exposed. If your project uses one, Keep Me Secure tells you what happened and what to do, with a link to the source.
@@ -136,6 +150,7 @@ To add an incident, open a pull request that edits `src/platforms.ts` and links 
 | `check_packages` (hosted) | Is my stack secure? | `packages`, a list of up to 500 |
 | `check_package` | Is this exact version safe? | `ecosystem`, `name`, `version` |
 | `check_platform` | Was this platform breached? | `name`, optional. Omit it to list all |
+| `check_runtime` | Is this Node.js or PHP version safe? | `runtime`, `version` |
 
 Example result, shortened:
 
@@ -173,6 +188,8 @@ For malicious packages, upgrading isn't enough. The advice is to remove the pack
 
 ## Data and privacy
 
+The full statement is at [keepmesecure.dev/privacy](https://keepmesecure.dev/privacy). This project is provided as is and used at your own risk, as set out in the [terms](https://keepmesecure.dev/terms).
+
 - Names and versions of public packages are sent to [OSV.dev](https://osv.dev). When something is affected, CVE ids go to [FIRST EPSS](https://www.first.org/epss/). The CISA KEV feed is downloaded.
 - Packages from private registries, git or local paths are not sent anywhere. They're listed in `coverage.private` and aren't checked.
 - Go, Java, .NET and most pnpm lockfiles don't show which registry a package came from, so private package names in those can be sent to OSV. Local `replace` paths in `go.mod` are the exception.
@@ -189,7 +206,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Limits
 
-- It covers third-party packages and a curated list of platform incidents, not language runtimes, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
+- It covers third-party packages, plus curated lists of runtime flaws and platform incidents. It doesn't cover your servers, OS packages, Docker base images or your own code. A `no` doesn't mean your whole stack is secure.
 - A `no` means no known issue at `checked_at`. OSV can lag behind an incident by a few hours.
 - It doesn't check whether your code actually reaches the vulnerable function.
 - For a transitive dependency, the fix may have to come from upgrading its parent package.
