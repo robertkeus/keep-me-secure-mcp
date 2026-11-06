@@ -5,6 +5,15 @@ import { readCache, today, writeCache } from "./cache.ts";
 import { normalizePy } from "./parsers.ts";
 import { allIncidents, forPlatforms, INCIDENTS, isRecent, loadIncidents, type PlatformReport } from "./platforms.ts";
 import { buildReport, NO_LOCKFILE, type Report } from "./report.ts";
+import {
+  checkRuntimes,
+  loadRuntimeAdvisories,
+  parseDeclared,
+  RUNTIME_ADVISORIES,
+  runtimeName,
+  type Runtime,
+  type RuntimeReport,
+} from "./runtimes.ts";
 import { isSafeName, isSafeVersion, safeLabel, scanProject } from "./scan.ts";
 import type { Dep, Ecosystem, Scan } from "./types.ts";
 
@@ -65,10 +74,11 @@ export async function checkProject(opts: { path?: string; ecosystem?: string; re
   const scan = await scanProject(projectRoot(opts.path), opts.ecosystem ? toEcosystem(opts.ecosystem) : undefined);
   const key = `report-${createHash("sha256").update(JSON.stringify(scan)).digest("hex").slice(0, 32)}`;
   const cached = await readCache<{ date: string; report: Report }>(key);
-  // Platform incidents are looked up fresh, so they're never served from a saved report.
+  // Platforms and runtimes are looked up fresh, so they're never served from a saved report.
   const withPlatforms = async (report: Report): Promise<Report> => ({
     ...report,
     platforms: { detected: scan.platforms ?? [], ...forPlatforms(await loadIncidents(), scan.platforms ?? []) },
+    runtimes: await checkRuntimes(scan.runtimes ?? [], await loadRuntimeAdvisories()),
   });
   if (!opts.refresh && cached?.date === today()) return withPlatforms(cached.report);
   const report = await buildReport(scan);
@@ -112,13 +122,28 @@ export async function checkPlatform(name: string | undefined, { hosted = false }
   return name ? forPlatforms(incidents, [name.toLowerCase().trim()]) : allIncidents(incidents);
 }
 
+export async function checkRuntime(runtime: string, version: string, { hosted = false } = {}): Promise<RuntimeReport> {
+  const names = new Map<string, Runtime>([["node", "node"], ["nodejs", "node"], ["node.js", "node"], ["php", "php"]]);
+  const name = names.get(runtime.toLowerCase());
+  if (!name) throw new InputError("Unsupported runtime. Use node or php.");
+  if (!/^v?\d+(\.\d+){0,2}$/.test(version)) throw new InputError("version must look like 8.4.26.");
+  return checkRuntimes([parseDeclared(name, version, "")], hosted ? RUNTIME_ADVISORIES : await loadRuntimeAdvisories());
+}
+
 export function summarize(r: Report): string {
   const packages = summarizePackages(r);
+  const runtimes = (r.runtimes?.findings ?? [])
+    .filter((f) => f.status === "affected" && /^[\d.]+$/.test(f.declared))
+    .map((f) => {
+      const fix = f.fixed_in ? `Upgrade to ${f.fixed_in} or later.` : "That release line has no official release with the fix.";
+      const known = f.exploited ? " It's being exploited." : "";
+      return `keep-me-secure: ${runtimeName(f.runtime)} ${f.declared} has a ${f.severity} security flaw.${known} ${fix}`;
+    });
   const recent = (r.platforms?.incidents ?? []).filter((i) => isRecent(i));
   const platforms = recent.map(
     (i) => `keep-me-secure: ${i.platform} reported a security incident on ${i.date}. Call the check_platform tool for what to do.`,
   );
-  return [packages, ...platforms].filter(Boolean).join("\n");
+  return [packages, ...new Set(runtimes), ...platforms].filter(Boolean).join("\n");
 }
 
 function summarizePackages(r: Report): string {

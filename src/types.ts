@@ -1,3 +1,5 @@
+import type { DeclaredRuntime } from "./runtimes.ts";
+
 export type Ecosystem = "Packagist" | "npm" | "PyPI" | "Go" | "crates.io" | "RubyGems" | "Maven" | "NuGet";
 
 export interface Dep {
@@ -28,6 +30,8 @@ export interface Scan {
   ignored?: string[];
   /** Lower-case names of platforms this project appears to use. */
   platforms?: string[];
+  /** Runtime versions the project declares. */
+  runtimes?: DeclaredRuntime[];
 }
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";

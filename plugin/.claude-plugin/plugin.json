@@ -1,6 +1,6 @@
 {
   "name": "keep-me-secure",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Checks your packages for known security issues every day when you start coding, and answers \"Is my stack secure?\".",
   "author": {
     "name": "Robert Keus"
